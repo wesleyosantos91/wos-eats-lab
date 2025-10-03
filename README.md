@@ -42,6 +42,20 @@ usando **Java 25 + Spring Boot 3.5.6** e uma stack **container-first** com Kuber
 
 ---
 
+### ⚡ Sprint 3B — Kafka Deep Dive
+- **Desafio**: Aprofundar em Kafka/Redpanda como backbone de eventos.
+- **Assuntos/Patterns**:  
+  - Partições, offsets, consumer groups, rebalance  
+  - Idempotent producer, transactional producer, exactly-once  
+  - DLQ e tópicos de retry  
+  - Retention/compaction policies  
+  - Schema evolution (JSON Schema/Avro + Schema Registry)  
+  - Reprocessamento seguro e replay de tópicos  
+  - Lag monitoring + autoscale com KEDA
+- **Tecnologias/Recursos**: Redpanda, Redpanda Console, Spring Kafka, KEDA, Schema Registry, Grafana dashboards.
+
+---
+
 ### 💳 Sprint 4 — Payment + Saga
 - **Desafio**: Orquestrar pagamentos com consistência.
 - **Assuntos/Patterns**: Saga Orchestration, Circuit Breaker, Retry, Timeout, Bulkhead.
@@ -120,14 +134,15 @@ usando **Java 25 + Spring Boot 3.5.6** e uma stack **container-first** com Kuber
 ---
 
 ## 📚 Referências de estudo
-- **Books**: "Building Microservices" (Sam Newman), "Implementing Domain-Driven Design" (Vaughn Vernon), "Site Reliability Engineering" (Google).  
-- **Docs**: [Spring Boot](https://spring.io/projects/spring-boot), [Argo CD](https://argo-cd.readthedocs.io), [Istio](https://istio.io), [Kong](https://docs.konghq.com).  
-- **Patterns**: [Microservices.io](https://microservices.io), [12-Factor App](https://12factor.net).  
+- **Books**: "Building Microservices" (Sam Newman), "Implementing Domain-Driven Design" (Vaughn Vernon), "Kafka: The Definitive Guide" (Narkhede et al.), "Site Reliability Engineering" (Google).  
+- **Docs**: [Spring Boot](https://spring.io/projects/spring-boot), [Argo CD](https://argo-cd.readthedocs.io), [Istio](https://istio.io), [Kong](https://docs.konghq.com), [Redpanda](https://docs.redpanda.com).  
+- **Patterns**: [Microservices.io](https://microservices.io), [12-Factor App](https://12factor.net), [Messaging Patterns](https://microservices.io/patterns/communication-style/messaging.html).  
 
 ---
 
 ## ✅ Resultado esperado
 Ao final desse roadmap:
 - Você terá aplicado **todos os patterns essenciais de microsserviços** (resiliência, dados, deploy, observabilidade, segurança, governança).  
+- Terá feito um **deep dive completo em Kafka/Redpanda**, cobrindo desde fundamentos até operação avançada.  
 - Sua stack será **cloud-native corporativa**, container-first, multi-cloud-ready e **12-Factor compliant**.  
 - Terá consolidado teoria + prática para atuar como **Staff/Principal Engineer** em microsserviços.
