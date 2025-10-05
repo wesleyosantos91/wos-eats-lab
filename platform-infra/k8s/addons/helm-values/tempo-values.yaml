@@ -1,0 +1,23 @@
+tempo:
+  enabled: true
+
+  metricsGenerator:
+    enabled: true
+    remoteWrite:
+      - url: http://kube-prometheus-stack-prometheus.monitoring.svc:9090/api/v1/write
+
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: 0.0.0.0:4318
+        grpc:
+          endpoint: 0.0.0.0:4317
+
+  securityContext: {}
+  persistence:
+    enabled: false
+
+serviceMonitor:
+  enabled: true
+  interval: 30s

@@ -1,0 +1,14 @@
+{
+  "title": "OTEL Overview",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Prometheus TSDB Head Chunks",
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "prometheus_tsdb_head_chunks"}],
+      "id": 1
+    }
+  ],
+  "schemaVersion": 30,
+  "version": 1
+}

@@ -1,0 +1,12 @@
+metricsServer:
+  enabled: false  # kind costuma ter metrics-server
+
+logging:
+  operator: { level: info }
+  scaler:   { level: info }
+
+podDisruptionBudget:
+  minAvailable: 1
+
+upgrade:
+  forceDeploy: true
