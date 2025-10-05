@@ -7,8 +7,8 @@ spec:
   project: default
   source:
     repoURL: https://github.com/wesleyosantos91/wos-eats-lab.git
-    targetRevision: main
-    path: k8s/argocd
+    targetRevision: feature/sprint-0
+    path: platform-infra/k8s/argocd
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
