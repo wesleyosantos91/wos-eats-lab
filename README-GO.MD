@@ -6,18 +6,35 @@
 ![Prometheus](https://img.shields.io/badge/Observability-Prometheus-E6522C?logo=prometheus)
 ![Grafana](https://img.shields.io/badge/Dashboards-Grafana-F46800?logo=grafana)
 ![Terraform](https://img.shields.io/badge/IaC-Terraform-7B42BC?logo=terraform)
+![AWS](https://img.shields.io/badge/Cloud-AWS-FF9900?logo=amazon-aws)
+![SQS](https://img.shields.io/badge/Messaging-SQS%2FSNS-232F3E?logo=amazonaws)
 ![Docker](https://img.shields.io/badge/Containers-Docker-2496ED?logo=docker)
 
 ---
 
-> 📘 **Objetivo:** Este repositório documenta o **cronograma de estudos e práticas** para construir um ecossistema de **microsserviços modernos** com **Golang**, orientado a padrões corporativos **cloud-native**, observabilidade, GitOps e boas práticas de engenharia de software.
+> 📘 **Objetivo:** Este repositório descreve o **roadmap completo de estudo e prática** para dominar **microsserviços cloud-native com Go**, aplicando fundamentos de **Kubernetes, Observabilidade, Mensageria (SNS/SQS/Kafka)** e **GitOps**, em um ambiente corporativo de alta disponibilidade e governança.
+
+---
+
+## ☁️ Contexto Arquitetural
+
+Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
+
+- **Kubernetes Avançado:** Pods, Deployments, Services, HPA, KEDA, CRDs, Operators, Security Context, Service Mesh (Linkerd/Istio), Gateway API e Progressive Delivery (Argo Rollouts).  
+- **Mensageria corporativa (AWS-native):**
+  - **Amazon SNS:** fan-out, event broadcasting, topic versioning.  
+  - **Amazon SQS:** filas padrão e FIFO, DLQ, backoff exponencial, retries e idempotência.  
+  - **Integração híbrida:** SNS → SQS → Lambda (Go), com fallback e DLQ monitorado.  
+- **Observabilidade 360°:** logs estruturados, tracing, métricas e dashboards centralizados (“single pane of glass”).  
+- **Infraestrutura as Code:** Terraform + Argo CD para pipelines declarativos e multi-cloud overlays.  
+- **12-Factor App e DDD/Hexagonal Architecture:** configuração via env, acoplamento fraco, alta testabilidade.  
 
 ---
 
 ## 🗓️ Cronograma de Sprints
 
 ### 🏁 Sprint 0 — Bootstrap & Plataforma Base
-**Desafio:** Subir o cluster local e provisionar a base da plataforma.
+**Desafio:** Subir o cluster local e provisionar a base de plataforma.
 
 - **Infra:** kind + Argo CD + Helm; Kong + Linkerd; Prometheus/Grafana + Loki/Tempo + KEDA.  
 - **Stack Local:** MinIO, LocalStack Pro, Redpanda, Postgres, Keycloak.  
@@ -98,13 +115,21 @@
 
 ---
 
-### 📊 Sprint 6 — Observabilidade & Autoscale
-**Desafio:** Visibilidade completa e autoescalonamento.
+### 📊 Sprint 6 — Observabilidade & Autoscale (RED, USE, VALET & Golden Signals)
+**Desafio:** Visibilidade completa, autoescalonamento e centralização de monitoramento.
 
-- **Stack:** Prometheus, Grafana, Loki, Tempo.  
-- **Libs:** `prometheus/client_golang`, `zap`, `otel-go`.  
-- **Escalabilidade:** HPA + KEDA.  
-- **DoD:** alertas RED/USE configurados; dashboards validados.
+- **Stack:** Prometheus, Grafana, Loki, Tempo, Alertmanager, Tempo, OTel Collector.  
+- **Modelos de Métricas:**  
+  - 🟥 **RED** → *Rate, Errors, Duration* (foco em APIs)  
+  - 🟦 **USE** → *Utilization, Saturation, Errors* (foco em recursos)  
+  - 🟩 **VALET** → *Value, Availability, Latency, Errors, Throughput* (foco em negócio)  
+  - 🟨 **Golden Signals** → *Latency, Traffic, Errors, Saturation* (SRE Core)  
+- **Dashboards:**  
+  - “Single Pane of Glass” — visão unificada de serviços, filas (SQS/SNS), tópicos Kafka e métricas de negócio.  
+  - Drill-down para APIs, Workers e DB.  
+- **Autoscaling:** HPA + KEDA baseados em métricas de consumo e lag.  
+- **Alertas:** SLOs e thresholds configurados no Prometheus.  
+- **DoD:** painéis RED/USE/VALET ativos e autoscale validado.
 
 ---
 
@@ -184,11 +209,12 @@
 ✔️ Configuração via env (12-Factor)  
 ✔️ Logs estruturados (JSON + `zap`)  
 ✔️ Health/Readiness Probes  
-✔️ Métricas + tracing (RED/USE)  
+✔️ Métricas RED/USE/VALET + tracing  
+✔️ Monitoramento SQS/SNS + Kafka + DB  
 ✔️ Testes (unit, integração, contrato, e2e)  
 ✔️ Deploy Helm + Argo  
 ✔️ Rollback automatizado (AnalysisTemplate)  
-✔️ Documentação: README, ADRs, diagramas C4  
+✔️ README + ADRs + Diagramas C4  
 
 ---
 
@@ -197,15 +223,16 @@
 - 🏗️ [Microservices.io](https://microservices.io) — Chris Richardson  
 - ☁️ [CNCF Landscape](https://landscape.cncf.io)  
 - 🔎 [OpenTelemetry for Go](https://opentelemetry.io/docs/instrumentation/go/)  
-- 🐳 [Docker Official Go Images](https://hub.docker.com/_/golang)  
+- 🐳 [AWS SDK v2 for Go](https://aws.github.io/aws-sdk-go-v2/docs/)  
+- ⚙️ [KEDA Scalers](https://keda.sh/docs/latest/scalers/aws-sqs-queue/)  
 
 ---
 
 ## ✅ Resultado Esperado
 Ao final:
 - Aplicar **todos os patterns essenciais** de microsserviços em Go.  
-- Dominar **Kafka/Redpanda, observabilidade, GitOps e resiliência**.  
-- Entregar um ecossistema **cloud-native corporativo, multi-cloud e 12-Factor compliant**.  
+- Dominar **Kubernetes, Kafka/Redpanda, SNS/SQS, observabilidade e GitOps**.  
+- Entregar um ecossistema **cloud-native corporativo, multi-cloud, resiliente e mensurável**.  
 - Estar preparado para atuar como **Staff/Principal Engineer em Go Microservices**.
 
 ---
