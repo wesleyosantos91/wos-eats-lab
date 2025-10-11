@@ -1,0 +1,183 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redpanda:
+    image: redpandadata/redpanda
+    command:
+      - redpanda
+      - start
+      # Kafka API (interno 9092 / externo 19092)
+      - --kafka-addr=internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr=internal://redpanda:9092,external://127.0.0.1:19092
+      # Pandaproxy (interno 8082 / externo 18082)
+      - --pandaproxy-addr=internal://0.0.0.0:8082,external://0.0.0.0:18082
+      - --advertise-pandaproxy-addr=internal://redpanda:8082,external://127.0.0.1:18082
+      # Schema Registry (interno 8081 / externo 18081)
+      - --schema-registry-addr=internal://0.0.0.0:8081,external://0.0.0.0:18081
+      # Admin / RPC
+      - --rpc-addr=redpanda:33145
+      - --advertise-rpc-addr=redpanda:33145
+      # perfil dev em container
+      - --smp=1
+      - --memory=1G
+      - --mode=dev-container
+      - --default-log-level=warn
+    ports:
+      - "19092:19092"  # Kafka externo (host)
+      - "9644:9644"    # Admin API
+      - "18082:18082"  # Pandaproxy
+      - "18081:18081"  # Schema Registry
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  redpanda-console:
+    image: redpandadata/console
+    entrypoint: /bin/sh
+    command: -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console --config.filepath /tmp/config.yml'
+    environment:
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["redpanda:9092"]
+        schemaRegistry:
+          enabled: true
+          urls: ["http://redpanda:8081"]
+        redpanda:
+          adminApi:
+            enabled: true
+            urls: ["http://redpanda:9644"]
+    ports:
+      - "8081:8080"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  keycloak:
+    image: quay.io/keycloak/keycloak
+    command: start-dev --hostname-strict=false --health-enabled=true
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8085:8080" # UI
+      - "9000:9000" # management/health
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e 'GET /health/ready HTTP/1.1\r\nhost: http://localhost\r\nConnection: close\r\n\r\n' >&3;if [ $? -eq 0 ]; then echo 'Healthcheck Successful';exit 0;else echo 'Healthcheck Failed';exit 1;fi;"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus
+    volumes: ["./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml"]
+    ports: ["9090:9090"]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  grafana:
+    image: grafana/grafana
+    ports: ["3000:3000"]
+    volumes: ["./monitoring/grafana-provisioning:/etc/grafana/provisioning"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  loki:
+    image: grafana/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports: ["3100:3100"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3100/ready || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  tempo:
+    image: grafana/tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./monitoring/tempo.yaml:/etc/tempo.yaml
+    ports: ["3200:3200"]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3200/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib
+    command: ["--config=/etc/otelcol/otel-collector.yaml"]
+    volumes: ["./monitoring/otel-collector.yaml:/etc/otelcol/otel-collector.yaml"]
+    ports:
+      - "4318:4318"   # OTLP HTTP (apps locais -> Collector)
+      - "8889:8889"   # Prometheus exporter (Prometheus faz scrape)
+    depends_on:
+      tempo:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+
+  localstack:
+    container_name: "${LOCALSTACK_DOCKER_NAME-localstack_main}"
+    image: localstack/localstack-pro
+    network_mode: bridge
+    user: root
+    ports:
+      - "127.0.0.1:53:53"
+      - "127.0.0.1:53:53/udp"
+      - "127.0.0.1:443:443"
+      - "127.0.0.1:4510-4530:4510-4530"
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4571:4571"
+    environment:
+      - SERVICES=${SERVICES-}
+      - DEBUG=${DEBUG-}
+      - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN:?}
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DISABLE_CORS_CHECKS=1
+    volumes:
+      - ./localstack/init-scripts:/etc/localstack/init/ready.d
+      - localstack_data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 15s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  localstack_data:
+  redpanda-data: {}

@@ -1,0 +1,7 @@
+grafana:
+  adminPassword: "admin"
+  service:
+    type: NodePort
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false

@@ -1,0 +1,3 @@
+tempo:
+  metricsGenerator:
+    enabled: true

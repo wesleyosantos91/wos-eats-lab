@@ -1,0 +1,17 @@
+ingressController:
+  installCRDs: true
+proxy:
+  type: NodePort
+  http:
+    enabled: true
+    servicePort: 80
+    nodePort: 30080
+  tls:
+    enabled: false
+admin:
+  enabled: false
+env:
+  plugins: bundled
+plugins:
+  prometheus:
+    enabled: true

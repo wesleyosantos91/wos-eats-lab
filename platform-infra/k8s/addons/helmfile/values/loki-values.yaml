@@ -1,0 +1,6 @@
+loki:
+  auth_enabled: false
+grafana:
+  enabled: false
+promtail:
+  enabled: true
