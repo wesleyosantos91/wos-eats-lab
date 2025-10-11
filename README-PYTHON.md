@@ -22,18 +22,50 @@
 
 ## ☁️ Contexto Arquitetural
 
-(Java/Go services)
-   ├─► Eventos: SNS/SQS/Kafka (OrderCreated, PaymentSettled)
-   ├─► Export REST (bulk/replay)
-   ▼
-[ Lambda (Python) ingest ] ─► S3 bronze
-[ Glue Jobs (PySpark) ]    ─► S3 silver/gold  ─► Glue Catalog
-                                       ├─► Athena / Redshift (views/KPIs)
-                                       └─► FastAPI (APIs de dados para apps Java/Go)
-Orquestração: Step Functions + EventBridge
-Governança: Lake Formation + KMS
-Observabilidade: CloudWatch + Prometheus + OpenTelemetry
-IaC: Terraform (fundação) + AWS CDK (pipelines de dados)
+```
++--------------------------------------------------------------+
+|                     Java / Go Services                       |
+|--------------------------------------------------------------|
+| - Publicam eventos: SNS / SQS / Kafka                        |
+|   (OrderCreated, PaymentSettled, CustomerUpdated)            |
+| - Disponibilizam export REST (/orders/export)                |
++--------------------------------------------------------------+
+                           │
+                           ▼
++--------------------------------------------------------------+
+|                AWS Lambda (Python - Ingestão)                |
+|  - Consome eventos e grava no S3 (camada bronze)             |
+|  - Garante idempotência, DLQ e criptografia KMS              |
++--------------------------------------------------------------+
+                           │
+                           ▼
++--------------------------------------------------------------+
+|                AWS Glue (PySpark - Transformação)            |
+|  - ETL bronze → silver → gold                                |
+|  - Limpeza, schema, enriquecimento, deduplicação             |
+|  - Atualiza metadados no Glue Catalog                        |
++--------------------------------------------------------------+
+                           │
+                           ▼
++--------------------------------------------------------------+
+|                AWS Glue Catalog (Metadados)                  |
+|  - Fonte única de verdade dos schemas                        |
+|  - Referência para Athena e Redshift Spectrum                |
+|  - Versionamento e lineage integrado                         |
++--------------------------------------------------------------+
+                           │
+                           ▼
++--------------------------------------------------------------+
+|         Athena / Redshift / FastAPI Data Services            |
+|  - KPIs e relatórios (GMV, pedidos/dia, churn, etc.)         |
+|  - APIs analíticas para apps Java/Go e dashboards            |
++--------------------------------------------------------------+
+
+Orquestração: Step Functions + EventBridge  
+Governança: Lake Formation + KMS  
+Observabilidade: CloudWatch + Prometheus + OpenTelemetry  
+IaC: Terraform + AWS CDK (Python)
+```
 
 ---
 
@@ -45,56 +77,56 @@ IaC: Terraform (fundação) + AWS CDK (pipelines de dados)
 - **Stack:** Poetry, virtualenv, pytest, boto3, pandas, polars  
 - **Objetivos:**  
   - Setup reprodutível (`Makefile`, `.env`, `pyproject.toml`, `ruff/mypy`).  
-  - ETL local: CSV → Parquet (particionando por data).  
+  - ETL local: CSV → Parquet (particionado por data).  
   - Upload para **S3/bronze** via `boto3`.  
-  - Criação inicial de **tabelas no Glue Catalog** (ex.: `orders_raw`).  
-- **Integração Java/Go:** consumo do endpoint de export `/orders/export` (bulk/replay) para gerar base inicial.  
-- **Observabilidade:** logs estruturados; métricas locais (linhas, duração).  
+  - Criação inicial de **tabelas no Glue Catalog** (`orders_raw`).  
+- **Integração Java/Go:** consumo do endpoint `/orders/export` para seed inicial.  
+- **Observabilidade:** logs estruturados e métricas locais (linhas, duração).  
 - **DoD:** ambiente ok; dataset `orders_raw` visível no Glue Catalog e consultável no Athena.
 
 ---
 
 ### 🚰 Sprint 16 — Big Data e ETL em Escala (Glue + PySpark + Catalog)
-**Desafio:** transformar dados brutos em silver com schema/partições governados.
+**Desafio:** transformar dados brutos em silver com schema e partições governadas.
 
 - **Stack:** AWS Glue (Jobs), PySpark, S3, **Glue Catalog**  
 - **Objetivos:**  
   - Jobs **bronze → silver** (normalização, tipos, enriquecimento).  
   - **Schema evolution** e partições (`partition_yyyymmdd`).  
-  - Registro/atualização automática no **Glue Catalog**.  
+  - Registro automático no **Glue Catalog**.  
   - Testes locais com `glue-local` + `pytest`.  
-- **Integração Java/Go:** eventos publicados pelos serviços alimentam `bronze`; Glue consolida em `silver` (Parquet).  
-- **Observabilidade:** métricas Glue no CloudWatch (linhas, bytes, duração, sucesso).  
-- **DoD:** tabelas `orders_silver` e `payments_silver` no Catalog; queries no Athena retornando corretamente.
+- **Integração Java/Go:** eventos dos microsserviços alimentam bronze; Glue consolida em silver.  
+- **Observabilidade:** métricas Glue (linhas, bytes, duração, sucesso).  
+- **DoD:** tabelas `orders_silver` e `payments_silver` registradas; queries Athena válidas.
 
 ---
 
 ### ⚙️ Sprint 17 — Orquestração e IaC Programável (CDK + Step Functions)
-**Desafio:** compor pipelines declarativos e acioná-los por eventos/cron.
+**Desafio:** compor pipelines declarativos e automatizar deploys.
 
 - **Stack:** AWS CDK (Python), Step Functions SDK, EventBridge, Terraform  
 - **Objetivos:**  
-  - State Machines **bronze→silver→gold** com tarefas Glue/Lambda.  
+  - State Machines **bronze→silver→gold** com Glue/Lambda.  
   - Triggers EventBridge (S3 PUT/cron).  
-  - CDK para empacotar stacks (Jobs, Roles, Step Functions).  
-  - Rollback e DLQ de execução integrados.  
-- **Integração Java/Go:** quando o serviço publica, a pipeline correspondente é acionada (SLA de ingest definido).  
-- **Observabilidade:** CloudWatch Alarms + histórico de execuções; tags para rastreabilidade por domínio.  
-- **DoD:** DAGs visíveis, versionadas e com alarmes de falha/timeout.
+  - CDK empacota Glue, IAM, Step Functions.  
+  - DLQ e rollback automáticos.  
+- **Integração Java/Go:** publicação de eventos dispara pipeline.  
+- **Observabilidade:** CloudWatch Alarms + rastreabilidade por domínio.  
+- **DoD:** DAGs visíveis e monitoradas com alarmes e histórico.
 
 ---
 
 ### 🧠 Sprint 18 — Serverless Data Processing e KPIs (Lambda + Athena + FastAPI)
-**Desafio:** construir ingestão serverless e APIs de dados consumíveis por serviços.
+**Desafio:** criar ingestão serverless e APIs de dados consumíveis por serviços.
 
 - **Stack:** Lambda, S3, Athena, EventBridge, boto3, **FastAPI**  
 - **Objetivos:**  
   - Lambda **SQS→S3 (bronze)** (idempotência + DLQ + KMS).  
-  - Lambda **Athena→API** (expor KPIs: GMV diário, pedidos/dia, conversão).  
-  - **FastAPI** como Data Service p/ apps Java/Go e dashboards.  
-- **Integração Java/Go:** serviços consomem `/kpi/*` para relatórios e automações; suporte a OIDC (Keycloak) + rate-limit via Kong.  
-- **Observabilidade:** OTel tracing nas Lambdas e FastAPI; métricas RED (RPS, erros, p95).  
-- **DoD:** ingestão automática + rota `/kpi/orders/daily` funcional sob autenticação.
+  - Lambda **Athena→API** (KPIs: GMV, pedidos/dia, conversão).  
+  - **FastAPI Data Service** integrado a Keycloak e Kong.  
+- **Integração Java/Go:** apps consomem `/kpi/*`; dados refletem eventos transacionais.  
+- **Observabilidade:** tracing OTel + métricas RED (RPS, erros, p95).  
+- **DoD:** ingestão automática e API `/kpi/orders/daily` ativa e autenticada.
 
 ---
 
@@ -103,13 +135,13 @@ IaC: Terraform (fundação) + AWS CDK (pipelines de dados)
 
 - **Stack:** Glue Catalog, Athena SQL, **Redshift Serverless**, pandas, boto3  
 - **Objetivos:**  
-  - Tabelas **gold** (fatos/dimensões): `fct_orders`, `dim_customer`, `fct_payments`.  
+  - Tabelas **gold** (`fct_orders`, `fct_payments`, `dim_customers`).  
   - Views analíticas (`kpi_orders_daily`, `kpi_gmv_daily`).  
-  - Integração Redshift (Spectrum) para queries OLAP.  
-  - Export para dashboards (Grafana/QuickSight).  
-- **Integração Java/Go:** KPIs servem portais e serviços; contratos de métricas documentados (SLIs).  
-- **Observabilidade:** logs/queries auditadas; custos por consulta monitorados.  
-- **DoD:** consultas consistentes e performáticas; KPIs disponíveis aos consumidores.
+  - Integração Redshift Spectrum.  
+  - Export KPIs para Grafana/QuickSight.  
+- **Integração Java/Go:** métricas consumidas por relatórios e auditorias.  
+- **Observabilidade:** logs Athena; custos e tempos por query.  
+- **DoD:** KPIs gold no Catalog; consultas rápidas e consistentes.
 
 ---
 
@@ -118,35 +150,35 @@ IaC: Terraform (fundação) + AWS CDK (pipelines de dados)
 
 - **Stack:** CloudWatch, **Prometheus**, **OpenTelemetry**, **Lake Formation**, Great Expectations  
 - **Objetivos:**  
-  - Instrumentar Glue/Lambda/Step Functions com métricas RED/USE.  
-  - Dashboards DataOps (SLOs: taxa de sucesso, duração, throughput).  
-  - **Data Quality as Code** (Great Expectations + pytest).  
-  - Lake Formation (masking, row/column level security); chaves KMS e policies.  
-  - Versionar **metadados do Glue Catalog** (DDL, schemas) em `data-contracts/`.  
-- **Integração Java/Go:** correlação entre eventos de negócio e etapas do pipeline; runbooks de replay.  
-- **Observabilidade:** Single Pane para pipelines (painel central DataOps).  
-- **DoD:** SLOs definidos e monitorados; governança aplicada; qualidade validada em CI/CD.
+  - Instrumentar Glue/Lambda/Step Functions (RED/USE).  
+  - Dashboards DataOps (SLOs: sucesso, duração, throughput).  
+  - **Data Quality as Code** (Great Expectations).  
+  - Governança Lake Formation (masking, RLS, CLS).  
+  - Versionar metadados Glue Catalog (`data-contracts/`).  
+- **Integração Java/Go:** correlação entre eventos e dados analíticos; runbooks de replay.  
+- **Observabilidade:** painéis centralizados DataOps + alertas.  
+- **DoD:** SLOs definidos, governança ativa, qualidade validada em CI/CD.
 
 ---
 
-## 🔍 Checklist Transversal (Data Layer)
+## 🔍 Checklist Transversal
 
 ✔️ Ambiente Python padronizado (Poetry + Makefile)  
-✔️ **Glue Catalog** como fonte única de metadados (versionado no repo)  
+✔️ **Glue Catalog** centralizado e versionado (`data-contracts/`)  
 ✔️ Schemas compatíveis com entidades Java/Go (Order, Payment, Customer)  
-✔️ Pipelines **Glue → Step Functions → Athena** automatizados (CDK/Terraform)  
-✔️ Lambdas observáveis (OTel + CloudWatch), com DLQ e KMS  
-✔️ **Data Quality** (pytest + Great Expectations) em silver/gold  
-✔️ Governança Lake Formation (RLS/CLS, masking)  
-✔️ Dashboards **RED/USE/VALET** para pipelines  
-✔️ CI/CD (pytest, `cdk synth`, `terraform validate`, gates de compatibilidade de schema)
+✔️ Pipelines **Glue → Step Functions → Athena** automatizados  
+✔️ Lambdas observáveis (OTel + CloudWatch)  
+✔️ Data Quality (pytest + Great Expectations)  
+✔️ Governança Lake Formation (masking, RLS/CLS)  
+✔️ Dashboards RED/USE/VALET  
+✔️ CI/CD (pytest + CDK synth + Terraform validate)
 
 ---
 
 ## ✅ Resultado Esperado
 
-- Integração total entre microsserviços Java/Go e pipelines Python/AWS.  
+- Integração total entre **microsserviços Java/Go** e pipelines Python/AWS.  
 - **Glue Catalog** central com lineage e versionamento de schemas.  
-- Lakehouse com ingestão, transformação e **KPIs acessíveis por API**.  
+- Lakehouse corporativo com KPIs consumíveis por API.  
 - Pipelines **observáveis, seguros e governados** com SLOs e runbooks.  
-- Base sólida para **ML/AI** (SageMaker/Bedrock) em fases futuras.
+- Base sólida para **ML/AI (SageMaker / Bedrock)** em fases futuras.
