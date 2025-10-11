@@ -1,4 +1,4 @@
-# ☁️ Data Engineering Cloud-Native Roadmap — Sprints 15–20
+# 🐍 Data Layer Cloud-Native Roadmap (Python 3.12 + AWS)
 ### *(Python 3.12 + AWS Glue + Glue Catalog + Step Functions + Athena/Redshift + DataOps)*
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)
