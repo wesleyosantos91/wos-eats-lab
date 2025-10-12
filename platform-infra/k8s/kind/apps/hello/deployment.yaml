@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: hello, namespace: default }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: hello } }
+  template:
+    metadata: { labels: { app: hello } }
+    spec:
+      containers:
+        - name: hello
+          image: hashicorp/http-echo:0.2.3
+          args: ["-text=hello-world"]
+          ports: [{ containerPort: 5678 }]

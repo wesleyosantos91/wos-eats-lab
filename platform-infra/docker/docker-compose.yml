@@ -1,0 +1,259 @@
+services:
+  # Databases
+  postgres:
+    container_name: postgres
+    image: postgres:18.0
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  postgres_infra:
+    container_name: postgres_infra
+    image: postgres:18.0
+    environment:
+      POSTGRES_DB: infra
+      POSTGRES_USER: infra
+      POSTGRES_PASSWORD: infra
+    ports: ["5433:5432"]
+    volumes: ["./postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U infra -d infra"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Observability stack (metrics, logs, traces)
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v3.6.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    ports: ["9090:9090"]
+    volumes: ["./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  loki:
+    container_name: loki
+    image: grafana/loki:3.5
+    command: ["-config.file=/etc/loki/config.yaml"]
+    ports: ["3100:3100"]
+    volumes: ["./loki/config.yaml:/etc/loki/config.yaml:ro"]
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3100/ready" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  tempo:
+    container_name: tempo
+    image: grafana/tempo:2.8.2
+    command: ["-config.file=/etc/tempo/tempo.yaml"]
+    ports: ["3200:3200"]
+    volumes: ["./tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro"]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3200/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:1.74.0
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports: ["5775:5775/udp", "6831:6831/udp", "6832:6832/udp", "5778:5778",  "16686:16686", "14268:14268", "14250:14250"]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:16686/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  blackbox:
+    container_name: blackbox
+    image: prom/blackbox-exporter:v0.27.0
+    ports: ["9115:9115"]
+    volumes: ["./blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro"]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9115/metrics"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:12.2
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports: ["3000:3000"]
+    volumes: ["./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro","./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro"]
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      tempo:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+      jaeger:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/api/health" ]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  otel-collector:
+    container_name: otel-collector
+    image: otel/opentelemetry-collector-contrib:0.137.0
+    command: ["--config=/etc/otel/config.yaml"]
+    ports: ["1888:1888", "8888:8888", "8889:8889", "13133:13133", "4317:4317","4318:4318","55679:55679"]
+    volumes: ["./otel/config.yaml:/etc/otel/config.yaml:ro"]
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      tempo:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+      jaeger:
+        condition: service_healthy
+
+  # API Gateway
+  kong-migrations:
+    container_name: kong-migrations
+    image: kong:3.9.1
+    command: [ "sh", "-c", "kong migrations bootstrap" ]
+    environment:
+      KONG_DATABASE: "postgres"
+      KONG_PG_HOST: postgres_infra
+      KONG_PG_PORT: 5432
+      KONG_PG_DATABASE: kong
+      KONG_PG_USER: infra
+      KONG_PG_PASSWORD: infra
+      KONG_PG_SCHEMA: kong_schema
+    depends_on:
+      postgres_infra:
+        condition: service_healthy
+    restart: "on-failure"
+
+  kong-import:
+    image: kong:3.9.1
+    command: ["kong", "config", "db_import", "/opt/kong/kong.yml"]
+    environment:
+      KONG_DATABASE: "postgres"
+      KONG_PG_HOST: postgres_infra
+      KONG_PG_PORT: 5432
+      KONG_PG_DATABASE: kong
+      KONG_PG_SCHEMA: kong_schema
+      KONG_PG_USER: infra
+      KONG_PG_PASSWORD: infra
+    volumes:
+      - "./kong/kong.yml:/opt/kong/kong.yml:ro"
+    depends_on:
+      postgres_infra:
+        condition: service_healthy
+      kong-migrations:
+        condition: service_completed_successfully
+    restart: "no"
+
+  kong:
+    container_name: kong
+    image: kong:3.9.1
+    environment:
+      KONG_DATABASE: "postgres"
+      KONG_PG_HOST: postgres_infra
+      KONG_PG_PORT: 5432
+      KONG_PG_DATABASE: kong
+      KONG_PG_SCHEMA: kong_schema
+      KONG_PG_USER: infra
+      KONG_PG_PASSWORD: infra
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001, 0.0.0.0:8444 ssl
+      KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
+      KONG_ADMIN_GUI_LISTEN: "0.0.0.0:8002"
+      KONG_LOG_LEVEL: info
+    ports: ["8000:8000", "8443:8443", "8001:8001", "8444:8444", "8002:8002"]
+    depends_on:
+      postgres_infra:
+        condition: service_healthy
+      kong-migrations:
+        condition: service_completed_successfully
+      kong-import:
+        condition: service_completed_successfully
+      blackbox:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /usr/local/kong/pids/nginx.pid"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Authentication/Authorization
+  keycloak:
+    container_name: keycloak
+    image: keycloak/keycloak:26.4
+    command: ["start-dev"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres_infra
+      KC_DB_URL_PORT: '5432'
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_SCHEMA: keycloak_schema
+      KC_DB_USERNAME: infra
+      KC_DB_PASSWORD: infra
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HTTPS_ENABLED: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+    ports: ["8085:8080","9000:9000"]
+    depends_on:
+      postgres_infra:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e 'GET /health/ready HTTP/1.1\r\nhost: http://localhost\r\nConnection: close\r\n\r\n' >&3;if [ $? -eq 0 ]; then echo 'Healthcheck Successful';exit 0;else echo 'Healthcheck Failed';exit 1;fi;"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Cloud emulation (AWS APIs)
+  localstack:
+    container_name: "${LOCALSTACK_DOCKER_NAME-localstack_main}"
+    image: localstack/localstack:4.9.2
+    environment:
+      SERVICES: ${SERVICES-}
+      DEBUG: ${DEBUG-}
+      DOCKER_HOST: unix:///var/run/docker.sock
+      DISABLE_CORS_CHECKS: "1"
+    ports: ["4566:4566", "4510-4530:4510-4530"]
+    volumes: ["localstack_data:/var/lib/localstack", "/var/run/docker.sock:/var/run/docker.sock"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 15s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  localstack_data:
