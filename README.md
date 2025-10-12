@@ -25,15 +25,15 @@
 
 ---
 
-> 📘 **Objetivo:** Consolidar os roadmaps de **Go**, **Java (Spring Boot 3.5.6)** e **Python/Data (AWS)** em um plano único para construir uma plataforma **cloud‑native corporativa**, com microsserviços, mensageria, observabilidade 360°, GitOps e uma camada de dados governada. Conteúdo derivado exclusivamente de: [README-GO.md](README-GO.md), [README-JAVA.md](README-JAVA.md) e [README-PYTHON.md](README-PYTHON.md).
+> 📘 **Objetivo:** Consolidar os roadmaps de **Go**, **Java (Spring Boot 3.5.6)** e **Python/Data (AWS)** em um plano único para construir uma plataforma **cloud-native corporativa**, com microsserviços, mensageria, observabilidade 360°, GitOps e uma camada de dados governada. Conteúdo derivado exclusivamente de: [README-GO.md](README-GO.md), [README-JAVA.md](README-JAVA.md) e [README-PYTHON.md](README-PYTHON.md).
 
 ---
 
 ## ☁️ Contexto Arquitetural
 
-- **Paradigma:** Container‑First & Cloud‑Native, 12‑Factor, DDD/Arquitetura Hexagonal.
+- **Paradigma:** Container-First & Cloud-Native, 12-Factor, DDD/Arquitetura Hexagonal.
 - **Plataforma:** Kubernetes + Helm + Argo CD (GitOps), Kong (API Gateway), Service Mesh (Istio/Linkerd), HPA + KEDA.
-- **Mensageria:** Amazon SNS (fan‑out/broadcast) e SQS (Standard/FIFO, DLQ, retries, idempotência) + Kafka/Redpanda para eventos transacionais e Outbox.
+- **Mensageria:** Amazon SNS (fan-out/broadcast) e SQS (Standard/FIFO, DLQ, retries, idempotência) + Kafka/Redpanda para eventos transacionais e Outbox.
 - **Observabilidade 360°:** logs estruturados (JSON), métricas (RED/USE/VALET/Golden Signals), tracing distribuído (OTel), dashboards (Grafana) e alertas (Prometheus/Alertmanager).
 - **Infra as Code:** Terraform para S3, SNS, SQS, Lambda, API Gateway, EKS/AKS e integrações locais.
 - **Segurança e Resiliência:** Keycloak (OIDC/JWT), RBAC, mTLS, Circuit Breaker, Retry, Timeout, Bulkhead, supply chain security e rollback automatizado por métricas.
@@ -43,32 +43,32 @@
 ## 🧱 Arquitetura de Serviços — Java (derivada do [README-JAVA.md](README-JAVA.md))
 
 - **Stack:** Java 25 + Spring Boot 3.5.6; Spring Security; Spring Kafka; SpringDoc OpenAPI.  
-- **Arquitetura:** Controller → Service → Repository (domain‑driven); APIs REST; Kong ingress + Istio sidecar.  
+- **Arquitetura:** Controller → Service → Repository (domain-driven); APIs REST; Kong ingress + Istio sidecar.  
 - **Persistência/Storage:** Postgres (Spring Data JPA); MinIO quando necessário.  
-- **Mensageria:** SNS/SQS (Standard/FIFO, DLQ, retries com backoff, idempotência) e Kafka/Redpanda (Outbox, Idempotent Consumer, Event‑Carried State).  
+- **Mensageria:** SNS/SQS (Standard/FIFO, DLQ, retries com backoff, idempotência) e Kafka/Redpanda (Outbox, Idempotent Consumer, Event-Carried State).  
 - **Observabilidade:** Micrometer + OpenTelemetry; Prometheus, Grafana, Loki, Tempo, Alertmanager.  
 - **Resiliência:** Resilience4j (Circuit Breaker, Retry, Timeout, Bulkhead).  
-- **Deploy/GitOps:** Helm Charts + Argo CD; Progressive Delivery com Argo Rollouts (Canary/Blue‑Green).  
+- **Deploy/GitOps:** Helm Charts + Argo CD; Progressive Delivery com Argo Rollouts (Canary/Blue-Green).  
 - **Segurança:** Keycloak (OIDC/JWT), RBAC; mTLS via mesh (permissive/STRICT).  
 - **Escala:** HPA + KEDA baseados em consumo, lag e latência.  
-- **Testes:** JUnit 5, Testcontainers, REST‑assured; performance (k6/Gatling).
+- **Testes:** JUnit 5, Testcontainers, REST-assured; performance (k6/Gatling).
 
 ---
 
 ## 🧱 Arquitetura de Serviços — Go (derivada do [README-GO.md](README-GO.md))
 
 - **Stack:** Go 1.23+; frameworks HTTP `go-chi`/`gin-gonic`; gRPC com `buf.build`.  
-- **Arquitetura:** Clean Architecture (domain, usecase, infra); 12‑Factor; acoplamento fraco e testabilidade.  
+- **Arquitetura:** Clean Architecture (domain, usecase, infra); 12-Factor; acoplamento fraco e testabilidade.  
 - **Persistência:** Postgres (GORM ou SQLC).  
 - **Gateway/Mesh:** Kong API Gateway; Service Mesh (Linkerd/Istio); Gateway API.  
 - **Mensageria:** AWS SNS/SQS (DLQ, retries, idempotência; SNS→SQS→Lambda em Go) e Kafka/Redpanda com cliente Sarama.  
-- **Padrões:** Transactional Outbox, Event‑Carried State, Idempotent Consumer.  
+- **Padrões:** Transactional Outbox, Event-Carried State, Idempotent Consumer.  
 - **Observabilidade:** OpenTelemetry for Go; métricas Prometheus; logs estruturados (JSON com `zap`); Grafana/Loki/Tempo, Alertmanager.  
 - **Resiliência:** `retry-go`, `context.WithTimeout`, bibliotecas de resilience para CB/Retry/Timeout.  
 - **Deploy/GitOps:** Helm + Argo CD; Progressive Delivery (Argo Rollouts).  
-- **Segurança:** Keycloak (go‑keycloak), JWT via Kong; mTLS no mesh.  
+- **Segurança:** Keycloak (go-keycloak), JWT/OIDC via Kong; mTLS no mesh.  
 - **Escala:** HPA + KEDA por consumo/lag; autoscaling validado.  
-- **Testes:** `testify`, Testcontainers‑Go; contratos e integração.
+- **Testes:** `testify`, Testcontainers-Go; contratos e integração.
 
 ---
 
@@ -110,17 +110,19 @@
 
 ---
 
-### 🔐 Sprint 2 — Customer/Auth + JWT/OIDC
-**Desafio:** Autenticação e autorização corporativas.
+### 🔐 Sprint 2 — Customer/Auth + **JWT/OIDC + RBAC** (Kong ↔ Keycloak)
+**Desafio:** Autenticação e autorização corporativas com identidade federada.
 
-- Stack: Keycloak + Spring Security (Java) ou go-keycloak (Go); plugin JWT no Kong.  
-- Padrões: OIDC, RBAC, mTLS permissive (mesh).  
-- DoD: endpoints protegidos exigem JWT válido.
+- Stack: **Keycloak** + Spring Security (Java) / go-keycloak (Go); **Kong com plugin OIDC** (Authorization Code + Client Credentials).  
+- Padrões: **OIDC/JWT (RS256)**, **RBAC** (realm/client roles), **mTLS permissive** (mesh).  
+- Integração: validação no gateway e **propagação de identidade** ao upstream (headers `X-Userinfo` / `X-Access-Token`).  
+- Observabilidade: métricas 2xx/401/403; logs de autenticação no **Loki**; tracing de login no **Tempo/Jaeger**.  
+- **DoD:** endpoints protegidos exigem login (via Keycloak) ou Bearer válido; RBAC aplicado; auditoria visível.
 
 ---
 
-### ⚡ Sprint 2A — Serverless Edge + Fan‑out
-**Desafio:** Integrar fan‑out com SNS → SQS → Lambda.
+### ⚡ Sprint 2A — Serverless Edge + Fan-out
+**Desafio:** Integrar fan-out com SNS → SQS → Lambda.
 
 - Stack: LocalStack + Terraform + AWS SDK (Go/Java).  
 - Padrões: DLQ, retries, idempotência.  
@@ -131,7 +133,7 @@
 ### 📦 Sprint 3 — Order Service + Kafka (Redpanda) + Outbox
 **Desafio:** Publicar eventos confiáveis e consistentes.
 
-- Padrões: Transactional Outbox, Event‑Carried State, Idempotent Consumer.  
+- Padrões: Transactional Outbox, Event-Carried State, Idempotent Consumer.  
 - Observabilidade: lag/throughput de tópicos.  
 - DoD: consistência entre DB e evento.
 
@@ -158,7 +160,7 @@
 ### 🚚 Sprint 5 — Delivery & Notification
 **Desafio:** Entregas e notificações multicanal.
 
-- Padrões: Event Choreography, fan‑out (SNS/SQS), DLQ e reprocesso.  
+- Padrões: Event Choreography, fan-out (SNS/SQS), DLQ e reprocesso.  
 - DoD: DLQ monitorado e recuperação automática.
 
 ---
@@ -167,7 +169,7 @@
 **Desafio:** Visibilidade completa e autoescalonamento.
 
 - Stack: Prometheus, Grafana, Loki, Tempo, Alertmanager, OTel Collector.  
-- Dashboards: single pane of glass; drill‑down por serviço.  
+- Dashboards: single pane of glass; drill-down por serviço.  
 - Escala: HPA + KEDA por consumo/lag/latência.  
 - Alertas: thresholds e SLOs.  
 - DoD: painéis RED/USE/VALET ativos e autoscale validado.
@@ -177,16 +179,16 @@
 ### 🚀 Sprint 7 — Progressive Delivery (Argo Rollouts)
 **Desafio:** Deploy seguro com rollback baseado em métricas.
 
-- Estratégias: Canary, Blue‑Green, AnalysisTemplate (Prometheus).  
+- Estratégias: Canary, Blue-Green, AnalysisTemplate (Prometheus).  
 - DoD: rollback automático validado.
 
 ---
 
-### ☁️ Sprint 8 — CD Corporativo & Multi‑cloud
-**Desafio:** Pipelines GitOps enterprise e overlays multi‑cloud.
+### ☁️ Sprint 8 — CD Corporativo & Multi-cloud
+**Desafio:** Pipelines GitOps enterprise e overlays multi-cloud.
 
 - Stack: GitHub Actions + Argo CD + Terraform.  
-- Recursos: cert‑manager, ExternalDNS, Karpenter; overlays EKS/AKS.  
+- Recursos: cert-manager, ExternalDNS, Karpenter; overlays EKS/AKS.  
 - DoD: PR → dev, tag → stg, approval → prod.
 
 ---
@@ -201,7 +203,7 @@
 ---
 
 ### 🔁 Sprint 10 — Service Mesh Avançado
-**Desafio:** Tráfego leste‑oeste e governança mesh.
+**Desafio:** Tráfego leste-oeste e governança mesh.
 
 - Ferramentas: Istio/Linkerd; VirtualServices, DestinationRules, mTLS STRICT.  
 - Padrões: Retries, Circuit Breaker, Shadow Deployment, A/B Testing.  
@@ -302,16 +304,17 @@
 ## ✅ Checklists Transversais
 
 ### Microsserviços (Go/Java)
-- ✔️ Config via env (12‑Factor) e logs estruturados (JSON).  
+- ✔️ Config via env (12-Factor) e logs estruturados (JSON).  
 - ✔️ Health/Readiness probes, métricas RED/USE/VALET e tracing OTel.  
 - ✔️ Monitoramento SQS/SNS + Kafka/Redpanda + DB.  
+- ✔️ **Autenticação OIDC/JWT (Kong ↔ Keycloak) + RBAC** e auditoria (Loki).  
 - ✔️ Testes (unit, integração, contrato, E2E/performance).  
 - ✔️ Deploy Helm + Argo (Rollouts) e rollback automático por métricas.  
 - ✔️ Documentação: README, ADRs e diagramas C4.
 
 ### Dados/DataOps (Python)
 - ✔️ Ambiente padronizado (Poetry + Makefile).  
-- ✔️ Glue Catalog central e versionado (data‑contracts/).  
+- ✔️ Glue Catalog central e versionado (data-contracts/).  
 - ✔️ Schemas compatíveis (Order, Payment, Customer).  
 - ✔️ Pipelines Terraform (Glue → Step Functions → Athena) e Lambdas observáveis (OTel + CloudWatch).  
 - ✔️ Data Quality (pytest + Great Expectations) e governança (Lake Formation).  
@@ -324,8 +327,8 @@
 - Aplicar patterns corporativos de microsserviços com Go/Java.  
 - Dominar Kubernetes, GitOps, observabilidade RED/USE/VALET/Golden Signals e mensageria (SNS/SQS/Kafka).  
 - Integrar camada de dados Python/AWS com Glue Catalog e pipelines bronze → silver → gold, expondo KPIs por API.  
-- Entregar plataforma cloud‑native corporativa, resiliente, auditável, governada e mensurável.  
-- Atuar como Staff/Principal Engineer (Go/Java) e Data Engineer (Python/AWS).
+- Proteger APIs com **OIDC/JWT** via Kong ↔ Keycloak e **RBAC**.  
+- Entregar plataforma cloud-native corporativa, resiliente, auditável, governada e mensurável.
 
 ---
 
