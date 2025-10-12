@@ -1,0 +1,11 @@
+global:
+  image:
+    tag: v2.12.3
+
+configs:
+  params:
+    server.insecure: true   # local: usaremos port-forward
+
+server:
+  service:
+    type: ClusterIP

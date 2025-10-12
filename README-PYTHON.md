@@ -63,6 +63,7 @@
 Orquestração: Step Functions + EventBridge  
 Governança: Lake Formation + KMS  
 Observabilidade: CloudWatch + Prometheus + OpenTelemetry  
+Segurança de Acesso a APIs: Keycloak (OIDC/JWT) + Kong (gateway)  
 IaC: **Terraform** (módulos, workspaces e automação)
 ```
 
@@ -92,12 +93,12 @@ IaC: **Terraform** (módulos, workspaces e automação)
 - **Objetivos:**  
   - Jobs **bronze → silver** (normalização, tipos, enriquecimento).  
   - **Schema evolution** e partições (`partition_yyyymmdd`).  
-  - Registro automático no **Glue Catalog**.  
+  - Registro automático no **Glue Catalog** (tabelas `orders_silver`, `payments_silver`).  
   - Testes locais com `glue-local` + `pytest`.  
   - Provisionamento via Terraform (S3, Glue, IAM).  
 - **Integração Java/Go:** eventos alimentam bronze; Glue consolida em silver.  
 - **Observabilidade:** métricas Glue (linhas, bytes, duração, sucesso).  
-- **DoD:** tabelas `orders_silver` e `payments_silver` registradas; queries Athena válidas.
+- **DoD:** tabelas registradas e queries no Athena válidas e performáticas.
 
 ---
 
@@ -106,28 +107,28 @@ IaC: **Terraform** (módulos, workspaces e automação)
 
 - **Stack:** AWS Step Functions, EventBridge, Terraform  
 - **Objetivos:**  
-  - State Machines **bronze→silver→gold** com Glue/Lambda.  
+  - State Machines **bronze → silver → gold** com Glue/Lambda.  
   - Triggers EventBridge (S3 PUT/cron).  
-  - Implementar módulos Terraform para Glue, Lambda e SFN.  
-  - DLQ e rollback automáticos.  
+  - Módulos Terraform para Glue, Lambda e SFN (reuso + idempotência).  
+  - DLQ e rollback automáticos com alarmes.  
 - **Integração Java/Go:** publicação de eventos dispara pipeline.  
 - **Observabilidade:** CloudWatch Alarms + rastreabilidade por domínio.  
-- **DoD:** DAGs visíveis e monitoradas com alarmes e histórico.
+- **DoD:** DAGs visíveis/monitoradas com histórico e alarmes.
 
 ---
 
-### 🧠 Sprint 18 — Serverless Data Processing e KPIs (Lambda + Athena + FastAPI)
+### 🧠 Sprint 18 — Serverless Data Processing & KPIs (Lambda + Athena + FastAPI)
 **Desafio:** criar ingestão serverless e APIs de dados consumíveis por serviços.
 
 - **Stack:** Lambda, S3, Athena, EventBridge, boto3, **FastAPI**, Terraform  
 - **Objetivos:**  
   - Lambda **SQS→S3 (bronze)** (idempotência + DLQ + KMS).  
   - Lambda **Athena→API** (KPIs: GMV, pedidos/dia, conversão).  
-  - **FastAPI Data Service** integrado a Keycloak e Kong.  
-  - Infra provisionada com Terraform (Lambda, API Gateway, roles).  
+  - **FastAPI Data Service** **protegido por Keycloak (OIDC/JWT)** via **Kong** (SSO/Bearer).  
+  - Infra provisionada com Terraform (Lambda, API Gateway, roles, policies).  
 - **Integração Java/Go:** apps consomem `/kpi/*`; dados refletem eventos transacionais.  
 - **Observabilidade:** tracing OTel + métricas RED (RPS, erros, p95).  
-- **DoD:** ingestão automática e API `/kpi/orders/daily` ativa e autenticada.
+- **DoD:** ingestão automática e API `/kpi/orders/daily` ativa, **autenticada** e observável (métricas/logs/traces).
 
 ---
 
@@ -138,12 +139,11 @@ IaC: **Terraform** (módulos, workspaces e automação)
 - **Objetivos:**  
   - Tabelas **gold** (`fct_orders`, `fct_payments`, `dim_customers`).  
   - Views analíticas (`kpi_orders_daily`, `kpi_gmv_daily`).  
-  - Integração Redshift Spectrum.  
-  - Export KPIs para Grafana/QuickSight.  
-  - Infra redshift e Athena gerenciada por Terraform.  
-- **Integração Java/Go:** métricas consumidas por relatórios e auditorias.  
+  - Integração Redshift Spectrum e export para dashboards (Grafana/QuickSight).  
+  - Infra **Redshift/Athena** gerenciada por Terraform.  
+- **Integração Java/Go:** KPIs alimentam relatórios e auditorias.  
 - **Observabilidade:** logs Athena; custos e tempos por query.  
-- **DoD:** KPIs gold no Catalog; consultas rápidas e consistentes.
+- **DoD:** KPIs gold no Catalog; consultas rápidas e consistentes (SLA/latência definidos).
 
 ---
 
@@ -153,14 +153,13 @@ IaC: **Terraform** (módulos, workspaces e automação)
 - **Stack:** CloudWatch, **Prometheus**, **OpenTelemetry**, **Lake Formation**, Great Expectations, Terraform  
 - **Objetivos:**  
   - Instrumentar Glue/Lambda/Step Functions (RED/USE).  
-  - Dashboards DataOps (SLOs: sucesso, duração, throughput).  
-  - **Data Quality as Code** (Great Expectations).  
-  - Governança Lake Formation (masking, RLS, CLS).  
-  - Versionar metadados Glue Catalog (`data-contracts/`).  
-  - Implementar monitoramento e alertas via Terraform (CloudWatch/Prometheus).  
-- **Integração Java/Go:** correlação entre eventos e dados analíticos; runbooks de replay.  
-- **Observabilidade:** painéis centralizados DataOps + alertas.  
-- **DoD:** SLOs definidos, governança ativa, qualidade validada em CI/CD.
+  - Dashboards DataOps (SLOs: sucesso, duração, throughput, custo).  
+  - **Data Quality as Code** (Great Expectations) com gates em CI/CD.  
+  - Governança Lake Formation (masking, RLS, CLS) + versionamento de contratos (`data-contracts/`).  
+  - Alertas por domínio (pedido/pagamento) e runbooks de replay/correção.  
+- **Integração Java/Go:** correlação entre eventos e dados analíticos (trace/SpanId/RequestId).  
+- **Observabilidade:** painéis centralizados DataOps + alertas de SLO.  
+- **DoD:** SLOs definidos, governança ativa, qualidade validada e auditoria completa.
 
 ---
 
@@ -173,7 +172,8 @@ IaC: **Terraform** (módulos, workspaces e automação)
 ✔️ Lambdas observáveis (OTel + CloudWatch)  
 ✔️ Data Quality (pytest + Great Expectations)  
 ✔️ Governança Lake Formation (masking, RLS/CLS)  
-✔️ Dashboards RED/USE/VALET  
+✔️ **APIs de dados protegidas por OIDC/JWT (Keycloak ↔ Kong)**  
+✔️ Dashboards RED/USE/VALET + alertas de SLO  
 ✔️ CI/CD (pytest + `terraform validate` + schema gates)
 
 ---
@@ -182,6 +182,6 @@ IaC: **Terraform** (módulos, workspaces e automação)
 
 - Integração total entre **microsserviços Java/Go** e pipelines Python/AWS.  
 - **Glue Catalog** central com lineage e versionamento de schemas.  
-- Lakehouse corporativo com KPIs consumíveis por API.  
+- Lakehouse corporativo com KPIs consumíveis por API, **seguras via OIDC/JWT**.  
 - Pipelines **observáveis, seguros e governados** com SLOs e runbooks.  
 - Base sólida para **ML/AI (SageMaker / Bedrock)** em fases futuras.

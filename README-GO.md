@@ -27,7 +27,7 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
   - **Integração híbrida:** SNS → SQS → Lambda (Go), com fallback e DLQ monitorado.  
 - **Observabilidade 360°:** logs estruturados, tracing, métricas e dashboards centralizados (“single pane of glass”).  
 - **Infraestrutura as Code:** Terraform + Argo CD para pipelines declarativos e multi-cloud overlays.  
-- **12-Factor App e DDD/Hexagonal Architecture:** configuração via env, acoplamento fraco, alta testabilidade.  
+- **12-Factor App e DDD/Hexagonal Architecture:** configuração via env, acoplamento fraco e alta testabilidade.  
 
 ---
 
@@ -51,19 +51,20 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 - **Arquitetura:** Clean Architecture (domain, usecase, infra).  
 - **Banco:** Postgres (GORM ou SQLC).  
 - **Observabilidade:** OpenTelemetry + Prometheus metrics.  
-- **Testes:** `testify`, Testcontainers-Go, REST-assured (Go).  
+- **Testes:** `testify`, Testcontainers-Go.  
 - **Deploy:** Helm chart + Argo CD rollout.
 
 ---
 
-### 🔑 Sprint 2 — Customer/Auth + JWT
-**Desafio:** Autenticação/autorização corporativa.
+### 🔑 Sprint 2 — Customer/Auth + OIDC + RBAC (Kong ↔ Keycloak)
+**Desafio:** Autenticação e autorização corporativa.
 
-- **Auth:** Keycloak + `go-keycloak`.  
-- **Padrões:** OIDC, JWT, RBAC, mTLS permissive (Linkerd/Istio).  
-- **Gateway:** Kong com plugin JWT.  
-- **Testes:** tokens inválidos, expirados, roles incorretas.  
-- **DoD:** endpoints protegidos exigem JWT.
+- **Auth:** Keycloak + `go-keycloak` + plugin OIDC no Kong.  
+- **Padrões:** OIDC (Authorization Code / Client Credentials), JWT (RS256), RBAC, mTLS (permissive no mesh).  
+- **Integração:** validação JWKS no Kong e propagação de claims via headers (`X-Userinfo`, `X-Access-Token`).  
+- **Observabilidade:** métricas 2xx/401/403 + logs de auth no Loki + tracing no Tempo.  
+- **Testes:** tokens inválidos/expirados + roles diferentes.  
+- **DoD:** endpoints protegidos exigem JWT válido; RBAC e auditoria visível no Loki.
 
 ---
 
@@ -73,7 +74,7 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 - **Infra:** AWS LocalStack Pro.  
 - **Padrões:** SNS → SQS → Lambda (Go).  
 - **Libs:** AWS SDK v2 for Go.  
-- **Testes:** integração LocalStack, DLQ, idempotência.
+- **Testes:** integração LocalStack, DLQ, idempotência.  
 
 ---
 
@@ -83,7 +84,7 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 - **Mensageria:** Redpanda (Kafka) + Sarama client.  
 - **Padrões:** Transactional Outbox, Event-Carried State, Idempotent Consumer.  
 - **Testes:** consistência DB + evento; contratos JSON Schema.  
-- **Observabilidade:** lag e throughput de tópicos.
+- **Observabilidade:** lag e throughput de tópicos.  
 
 ---
 
@@ -118,7 +119,7 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 ### 📊 Sprint 6 — Observabilidade & Autoscale (RED, USE, VALET & Golden Signals)
 **Desafio:** Visibilidade completa, autoescalonamento e centralização de monitoramento.
 
-- **Stack:** Prometheus, Grafana, Loki, Tempo, Alertmanager, Tempo, OTel Collector.  
+- **Stack:** Prometheus, Grafana, Loki, Tempo, Alertmanager, OTel Collector.  
 - **Modelos de Métricas:**  
   - 🟥 **RED** → *Rate, Errors, Duration* (foco em APIs)  
   - 🟦 **USE** → *Utilization, Saturation, Errors* (foco em recursos)  
@@ -128,7 +129,7 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
   - “Single Pane of Glass” — visão unificada de serviços, filas (SQS/SNS), tópicos Kafka e métricas de negócio.  
   - Drill-down para APIs, Workers e DB.  
 - **Autoscaling:** HPA + KEDA baseados em métricas de consumo e lag.  
-- **Alertas:** SLOs e thresholds configurados no Prometheus.  
+- **Alertas:** SLOs e thresholds no Prometheus.  
 - **DoD:** painéis RED/USE/VALET ativos e autoscale validado.
 
 ---
@@ -237,5 +238,5 @@ Ao final:
 
 ---
 
-> 💡 **Dica:** Cada sprint deve gerar um repositório modular (`catalog-service`, `order-service`, etc.), com README e diagramas próprios.  
+> 💡 **Dica:** Cada sprint gera um repositório modular (`catalog-service`, `order-service`, etc.), com README e diagramas próprios.  
 > Use ADRs curtos (Architecture Decision Records) para justificar decisões técnicas.
