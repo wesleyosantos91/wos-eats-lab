@@ -58,14 +58,17 @@ Este ecossistema segue o paradigma **Container-First & Cloud-Native**, com ênfa
 
 ---
 
-### 🔑 Sprint 2 — Customer/Auth Service + JWT/OIDC
-**Desafio:** Autenticação e autorização centralizadas.
+### 🔑 Sprint 2 — Customer/Auth Service + JWT/OIDC + RBAC
+**Desafio:** Autenticação e autorização centralizadas com identidade federada.
 
-- **Stack:** Keycloak + Spring Security + Kong JWT plugin.  
-- **Padrões:** OIDC, RBAC, mTLS permissive.  
-- **Testes:** Keycloak Testcontainer, tokens inválidos/expirados.  
-- **Observabilidade:** métricas 2xx/401/403 + auditoria.  
-- **DoD:** endpoints protegidos com JWT válido.
+- **Stack:** Keycloak + Spring Security + Kong OIDC plugin.  
+- **Padrões:** OIDC (Authorization Code / Client Credentials), JWT, RBAC, mTLS permissive.  
+- **Integração:** Kong ↔ Keycloak (realm `dev`, clients `kong`, `customer-service`).  
+- **Propagação:** Headers `X-Userinfo` e `X-Access-Token` para upstream.  
+- **Segurança:** Roles e scopes aplicados a endpoints; tokens RS256.  
+- **Observabilidade:** métricas 2xx/401/403, logs de autenticação no Loki, tracing no Tempo/Jaeger.  
+- **Testes:** tokens inválidos, expiração, roles e claims.  
+- **DoD:** `/hello` protegido; login via Keycloak; RBAC e logs auditáveis.
 
 ---
 
@@ -125,17 +128,10 @@ Este ecossistema segue o paradigma **Container-First & Cloud-Native**, com ênfa
 **Desafio:** Implementar observabilidade completa e visão centralizada.
 
 - **Stack:** Micrometer + Prometheus + Grafana + Loki + Tempo + Alertmanager.  
-- **Modelos de Métricas:**  
-  - 🟥 **RED** → *Rate, Errors, Duration* (serviços e APIs)  
-  - 🟦 **USE** → *Utilization, Saturation, Errors* (recursos infra)  
-  - 🟩 **VALET** → *Value, Availability, Latency, Errors, Throughput* (métricas de negócio)  
-  - 🟨 **Golden Signals** → *Latency, Traffic, Errors, Saturation* (SRE Core)  
-- **Dashboards:**  
-  - *Single Pane of Glass* — visão consolidada de APIs, filas (SQS/SNS), Kafka, storage e métricas de negócio.  
-  - Drill-down por serviço e namespace.  
+- **Modelos:** RED, USE, VALET e Golden Signals.  
+- **Dashboards:** visão consolidada de APIs, filas, Kafka, storage e métricas de negócio.  
 - **Escalabilidade:** HPA + KEDA baseados em consumo, lag e latency.  
-- **Alertas:** thresholds e SLOs definidos no Prometheus.  
-- **DoD:** dashboards RED/USE/VALET visíveis; autoscale validado.
+- **DoD:** dashboards visíveis; autoscale validado.
 
 ---
 
@@ -216,6 +212,9 @@ Este ecossistema segue o paradigma **Container-First & Cloud-Native**, com ênfa
 ✔️ Probes, métricas e tracing OTel  
 ✔️ Dashboards RED/USE/VALET  
 ✔️ Monitoramento SQS/SNS + Kafka  
+✔️ Autenticação OIDC (Keycloak ↔ Kong)  
+✔️ RBAC por roles e claims  
+✔️ Logs de autenticação e auditoria  
 ✔️ Testes (unit, integração, contrato, E2E, performance)  
 ✔️ Helm + Argo Rollouts  
 ✔️ Rollback automatizado (AnalysisTemplate)  
@@ -229,17 +228,18 @@ Este ecossistema segue o paradigma **Container-First & Cloud-Native**, com ênfa
 - 🧾 *Site Reliability Engineering* — Google  
 - ☁️ [Spring Boot Docs](https://spring.io/projects/spring-boot)  
 - ⚙️ [Argo CD](https://argo-cd.readthedocs.io) · [Istio](https://istio.io) · [KEDA](https://keda.sh)  
+- 🔑 [Keycloak Docs](https://www.keycloak.org/docs/latest/)  
+- 🌐 [Kong OIDC Plugin](https://docs.konghq.com/hub/kong-inc/openid-connect/)  
 - 🐳 [AWS SQS/SNS SDK](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/home.html)
 
 ---
 
 ## ✅ Resultado Esperado
 Ao final:
-- Aplicar **todos os patterns corporativos** de microsserviços.  
-- Dominar **Kubernetes avançado, observabilidade RED/USE/VALET, SNS/SQS, Kafka e GitOps**.  
-- Entregar uma plataforma **cloud-native, resiliente, auditável e mensurável**.  
-- Atuar com excelência como **Staff/Principal Engineer Java Cloud-Native**.
+- Aplicar **autenticação OIDC corporativa** com Keycloak e Kong.  
+- Proteger APIs via JWT e SSO federado.  
+- Propagar identidade entre serviços.  
+- Auditar e observar métricas de login e autorização.  
+- Entregar uma plataforma **cloud-native, resiliente e segura**.  
 
----
-
-> 💡 **Dica:** Cada sprint deve gerar um módulo ou serviço independente (ex: `catalog-service`, `order-service`), com ADRs, diagramas e README completos.
+> 💡 **Dica:** Cada sprint gera um módulo independente (ex: `catalog-service`, `customer-service`), com ADRs, diagramas e README próprios.
