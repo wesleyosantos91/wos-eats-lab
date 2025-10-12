@@ -56,14 +56,16 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 
 ---
 
-### 🔑 Sprint 2 — Customer/Auth + JWT
-**Desafio:** Autenticação/autorização corporativa.
+### 🔑 Sprint 2 — Customer/Auth + JWT/OIDC + RBAC
+**Desafio:** Autenticação e autorização corporativa com identidade federada.
 
-- **Auth:** Keycloak + `go-keycloak`.  
-- **Padrões:** OIDC, JWT, RBAC, mTLS permissive (Linkerd/Istio).  
-- **Gateway:** Kong com plugin JWT.  
-- **Testes:** tokens inválidos, expirados, roles incorretas.  
-- **DoD:** endpoints protegidos exigem JWT.
+- **Auth:** Keycloak (realm `dev`, clients `kong`, `go-service`) + `go-keycloak`/`oauth2`.  
+- **Gateway:** Kong com **plugin OIDC** (Authorization Code + Client Credentials).  
+- **Padrões:** OIDC, JWT (RS256), RBAC (realm/client roles), mTLS permissive (mesh opcional).  
+- **Integração:** validação no gateway e **propagação de identidade** ao upstream (`X-Userinfo`, `X-Access-Token`).  
+- **Observabilidade:** métricas 2xx/401/403, logs de auth no Loki, tracing de login no Tempo/Jaeger.  
+- **Testes:** tokens inválidos/expirados, roles incorretas, claims obrigatórias.  
+- **DoD:** endpoints protegidos exigem login Keycloak ou Bearer; RBAC aplicado; logs auditáveis.
 
 ---
 
@@ -118,17 +120,15 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 ### 📊 Sprint 6 — Observabilidade & Autoscale (RED, USE, VALET & Golden Signals)
 **Desafio:** Visibilidade completa, autoescalonamento e centralização de monitoramento.
 
-- **Stack:** Prometheus, Grafana, Loki, Tempo, Alertmanager, Tempo, OTel Collector.  
+- **Stack:** Prometheus, Grafana, Loki, Tempo, Alertmanager, OTel Collector.  
 - **Modelos de Métricas:**  
-  - 🟥 **RED** → *Rate, Errors, Duration* (foco em APIs)  
-  - 🟦 **USE** → *Utilization, Saturation, Errors* (foco em recursos)  
-  - 🟩 **VALET** → *Value, Availability, Latency, Errors, Throughput* (foco em negócio)  
+  - 🟥 **RED** → *Rate, Errors, Duration* (APIs)  
+  - 🟦 **USE** → *Utilization, Saturation, Errors* (infra)  
+  - 🟩 **VALET** → *Value, Availability, Latency, Errors, Throughput* (negócio)  
   - 🟨 **Golden Signals** → *Latency, Traffic, Errors, Saturation* (SRE Core)  
-- **Dashboards:**  
-  - “Single Pane of Glass” — visão unificada de serviços, filas (SQS/SNS), tópicos Kafka e métricas de negócio.  
-  - Drill-down para APIs, Workers e DB.  
-- **Autoscaling:** HPA + KEDA baseados em métricas de consumo e lag.  
-- **Alertas:** SLOs e thresholds configurados no Prometheus.  
+- **Dashboards:** visão unificada de serviços, filas (SQS/SNS), Kafka e métricas de negócio; drill-down por serviço.  
+- **Autoscaling:** HPA + KEDA baseados em consumo e lag.  
+- **Alertas:** SLOs e thresholds no Prometheus.  
 - **DoD:** painéis RED/USE/VALET ativos e autoscale validado.
 
 ---
@@ -211,6 +211,8 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 ✔️ Health/Readiness Probes  
 ✔️ Métricas RED/USE/VALET + tracing  
 ✔️ Monitoramento SQS/SNS + Kafka + DB  
+✔️ Autenticação **OIDC (Kong ↔ Keycloak)** + **RBAC**  
+✔️ Logs de autenticação e auditoria (Loki)  
 ✔️ Testes (unit, integração, contrato, e2e)  
 ✔️ Deploy Helm + Argo  
 ✔️ Rollback automatizado (AnalysisTemplate)  
@@ -225,17 +227,17 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 - 🔎 [OpenTelemetry for Go](https://opentelemetry.io/docs/instrumentation/go/)  
 - 🐳 [AWS SDK v2 for Go](https://aws.github.io/aws-sdk-go-v2/docs/)  
 - ⚙️ [KEDA Scalers](https://keda.sh/docs/latest/scalers/aws-sqs-queue/)  
+- 🔑 [Keycloak Docs](https://www.keycloak.org/docs/latest/)  
+- 🌐 [Kong OIDC Plugin](https://docs.konghq.com/hub/kong-inc/openid-connect/)
 
 ---
 
 ## ✅ Resultado Esperado
 Ao final:
-- Aplicar **todos os patterns essenciais** de microsserviços em Go.  
+- Aplicar **patterns essenciais** de microsserviços em Go.  
 - Dominar **Kubernetes, Kafka/Redpanda, SNS/SQS, observabilidade e GitOps**.  
-- Entregar um ecossistema **cloud-native corporativo, multi-cloud, resiliente e mensurável**.  
-- Estar preparado para atuar como **Staff/Principal Engineer em Go Microservices**.
+- Proteger APIs com **OIDC/JWT** via Kong ↔ Keycloak e **RBAC**.  
+- Entregar um ecossistema **cloud-native corporativo, resiliente e mensurável**.  
 
----
-
-> 💡 **Dica:** Cada sprint deve gerar um repositório modular (`catalog-service`, `order-service`, etc.), com README e diagramas próprios.  
+> 💡 **Dica:** Cada sprint gera um repositório modular (`catalog-service`, `order-service`, etc.), com README e diagramas próprios.  
 > Use ADRs curtos (Architecture Decision Records) para justificar decisões técnicas.
