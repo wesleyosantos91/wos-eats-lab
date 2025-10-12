@@ -27,7 +27,7 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
   - **Integração híbrida:** SNS → SQS → Lambda (Go), com fallback e DLQ monitorado.  
 - **Observabilidade 360°:** logs estruturados, tracing, métricas e dashboards centralizados (“single pane of glass”).  
 - **Infraestrutura as Code:** Terraform + Argo CD para pipelines declarativos e multi-cloud overlays.  
-- **12-Factor App e DDD/Hexagonal Architecture:** configuração via env, acoplamento fraco, alta testabilidade.  
+- **12-Factor App e DDD/Hexagonal Architecture:** configuração via env, acoplamento fraco e alta testabilidade.  
 
 ---
 
@@ -51,21 +51,20 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 - **Arquitetura:** Clean Architecture (domain, usecase, infra).  
 - **Banco:** Postgres (GORM ou SQLC).  
 - **Observabilidade:** OpenTelemetry + Prometheus metrics.  
-- **Testes:** `testify`, Testcontainers-Go, REST-assured (Go).  
+- **Testes:** `testify`, Testcontainers-Go.  
 - **Deploy:** Helm chart + Argo CD rollout.
 
 ---
 
-### 🔑 Sprint 2 — Customer/Auth + JWT/OIDC + RBAC
-**Desafio:** Autenticação e autorização corporativa com identidade federada.
+### 🔑 Sprint 2 — Customer/Auth + OIDC + RBAC (Kong ↔ Keycloak)
+**Desafio:** Autenticação e autorização corporativa.
 
-- **Auth:** Keycloak (realm `dev`, clients `kong`, `go-service`) + `go-keycloak`/`oauth2`.  
-- **Gateway:** Kong com **plugin OIDC** (Authorization Code + Client Credentials).  
-- **Padrões:** OIDC, JWT (RS256), RBAC (realm/client roles), mTLS permissive (mesh opcional).  
-- **Integração:** validação no gateway e **propagação de identidade** ao upstream (`X-Userinfo`, `X-Access-Token`).  
-- **Observabilidade:** métricas 2xx/401/403, logs de auth no Loki, tracing de login no Tempo/Jaeger.  
-- **Testes:** tokens inválidos/expirados, roles incorretas, claims obrigatórias.  
-- **DoD:** endpoints protegidos exigem login Keycloak ou Bearer; RBAC aplicado; logs auditáveis.
+- **Auth:** Keycloak + `go-keycloak` + plugin OIDC no Kong.  
+- **Padrões:** OIDC (Authorization Code / Client Credentials), JWT (RS256), RBAC, mTLS (permissive no mesh).  
+- **Integração:** validação JWKS no Kong e propagação de claims via headers (`X-Userinfo`, `X-Access-Token`).  
+- **Observabilidade:** métricas 2xx/401/403 + logs de auth no Loki + tracing no Tempo.  
+- **Testes:** tokens inválidos/expirados + roles diferentes.  
+- **DoD:** endpoints protegidos exigem JWT válido; RBAC e auditoria visível no Loki.
 
 ---
 
@@ -75,7 +74,7 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 - **Infra:** AWS LocalStack Pro.  
 - **Padrões:** SNS → SQS → Lambda (Go).  
 - **Libs:** AWS SDK v2 for Go.  
-- **Testes:** integração LocalStack, DLQ, idempotência.
+- **Testes:** integração LocalStack, DLQ, idempotência.  
 
 ---
 
@@ -85,7 +84,7 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 - **Mensageria:** Redpanda (Kafka) + Sarama client.  
 - **Padrões:** Transactional Outbox, Event-Carried State, Idempotent Consumer.  
 - **Testes:** consistência DB + evento; contratos JSON Schema.  
-- **Observabilidade:** lag e throughput de tópicos.
+- **Observabilidade:** lag e throughput de tópicos.  
 
 ---
 
@@ -122,12 +121,14 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 
 - **Stack:** Prometheus, Grafana, Loki, Tempo, Alertmanager, OTel Collector.  
 - **Modelos de Métricas:**  
-  - 🟥 **RED** → *Rate, Errors, Duration* (APIs)  
-  - 🟦 **USE** → *Utilization, Saturation, Errors* (infra)  
-  - 🟩 **VALET** → *Value, Availability, Latency, Errors, Throughput* (negócio)  
+  - 🟥 **RED** → *Rate, Errors, Duration* (foco em APIs)  
+  - 🟦 **USE** → *Utilization, Saturation, Errors* (foco em recursos)  
+  - 🟩 **VALET** → *Value, Availability, Latency, Errors, Throughput* (foco em negócio)  
   - 🟨 **Golden Signals** → *Latency, Traffic, Errors, Saturation* (SRE Core)  
-- **Dashboards:** visão unificada de serviços, filas (SQS/SNS), Kafka e métricas de negócio; drill-down por serviço.  
-- **Autoscaling:** HPA + KEDA baseados em consumo e lag.  
+- **Dashboards:**  
+  - “Single Pane of Glass” — visão unificada de serviços, filas (SQS/SNS), tópicos Kafka e métricas de negócio.  
+  - Drill-down para APIs, Workers e DB.  
+- **Autoscaling:** HPA + KEDA baseados em métricas de consumo e lag.  
 - **Alertas:** SLOs e thresholds no Prometheus.  
 - **DoD:** painéis RED/USE/VALET ativos e autoscale validado.
 
@@ -211,8 +212,6 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 ✔️ Health/Readiness Probes  
 ✔️ Métricas RED/USE/VALET + tracing  
 ✔️ Monitoramento SQS/SNS + Kafka + DB  
-✔️ Autenticação **OIDC (Kong ↔ Keycloak)** + **RBAC**  
-✔️ Logs de autenticação e auditoria (Loki)  
 ✔️ Testes (unit, integração, contrato, e2e)  
 ✔️ Deploy Helm + Argo  
 ✔️ Rollback automatizado (AnalysisTemplate)  
@@ -227,17 +226,17 @@ Este ecossistema é **100% container-first e Kubernetes-native**, com foco em:
 - 🔎 [OpenTelemetry for Go](https://opentelemetry.io/docs/instrumentation/go/)  
 - 🐳 [AWS SDK v2 for Go](https://aws.github.io/aws-sdk-go-v2/docs/)  
 - ⚙️ [KEDA Scalers](https://keda.sh/docs/latest/scalers/aws-sqs-queue/)  
-- 🔑 [Keycloak Docs](https://www.keycloak.org/docs/latest/)  
-- 🌐 [Kong OIDC Plugin](https://docs.konghq.com/hub/kong-inc/openid-connect/)
 
 ---
 
 ## ✅ Resultado Esperado
 Ao final:
-- Aplicar **patterns essenciais** de microsserviços em Go.  
+- Aplicar **todos os patterns essenciais** de microsserviços em Go.  
 - Dominar **Kubernetes, Kafka/Redpanda, SNS/SQS, observabilidade e GitOps**.  
-- Proteger APIs com **OIDC/JWT** via Kong ↔ Keycloak e **RBAC**.  
-- Entregar um ecossistema **cloud-native corporativo, resiliente e mensurável**.  
+- Entregar um ecossistema **cloud-native corporativo, multi-cloud, resiliente e mensurável**.  
+- Estar preparado para atuar como **Staff/Principal Engineer em Go Microservices**.
+
+---
 
 > 💡 **Dica:** Cada sprint gera um repositório modular (`catalog-service`, `order-service`, etc.), com README e diagramas próprios.  
 > Use ADRs curtos (Architecture Decision Records) para justificar decisões técnicas.
