@@ -62,13 +62,13 @@ Este ecossistema segue o paradigma **Container-First & Cloud-Native**, com ênfa
 **Desafio:** Autenticação e autorização centralizadas com identidade federada.
 
 - **Stack:** Keycloak + Spring Security + Kong OIDC plugin.  
-- **Padrões:** OIDC (Authorization Code / Client Credentials), JWT, RBAC, mTLS permissive.  
+- **Padrões:** OIDC (Authorization Code / Client Credentials), JWT (RS256), RBAC, mTLS permissive.  
 - **Integração:** Kong ↔ Keycloak (realm `dev`, clients `kong`, `customer-service`).  
 - **Propagação:** Headers `X-Userinfo` e `X-Access-Token` para upstream.  
-- **Segurança:** Roles e scopes aplicados a endpoints; tokens RS256.  
-- **Observabilidade:** métricas 2xx/401/403, logs de autenticação no Loki, tracing no Tempo/Jaeger.  
-- **Testes:** tokens inválidos, expiração, roles e claims.  
-- **DoD:** `/hello` protegido; login via Keycloak; RBAC e logs auditáveis.
+- **Segurança:** Roles e scopes aplicados a endpoints; propagação de claims.  
+- **Observabilidade:** métricas 2xx/401/403, logs de autenticação no Loki, tracing de login no Tempo/Jaeger.  
+- **Testes:** tokens inválidos, expirados e roles incorretas.  
+- **DoD:** `/hello` protegido; login via Keycloak; RBAC e auditoria habilitados.
 
 ---
 
@@ -128,10 +128,17 @@ Este ecossistema segue o paradigma **Container-First & Cloud-Native**, com ênfa
 **Desafio:** Implementar observabilidade completa e visão centralizada.
 
 - **Stack:** Micrometer + Prometheus + Grafana + Loki + Tempo + Alertmanager.  
-- **Modelos:** RED, USE, VALET e Golden Signals.  
-- **Dashboards:** visão consolidada de APIs, filas, Kafka, storage e métricas de negócio.  
+- **Modelos de Métricas:**  
+  - 🟥 **RED** → *Rate, Errors, Duration* (serviços e APIs)  
+  - 🟦 **USE** → *Utilization, Saturation, Errors* (recursos infra)  
+  - 🟩 **VALET** → *Value, Availability, Latency, Errors, Throughput* (métricas de negócio)  
+  - 🟨 **Golden Signals** → *Latency, Traffic, Errors, Saturation* (SRE Core)  
+- **Dashboards:**  
+  - *Single Pane of Glass* — visão consolidada de APIs, filas (SQS/SNS), Kafka, storage e métricas de negócio.  
+  - Drill-down por serviço e namespace.  
 - **Escalabilidade:** HPA + KEDA baseados em consumo, lag e latency.  
-- **DoD:** dashboards visíveis; autoscale validado.
+- **Alertas:** thresholds e SLOs definidos no Prometheus.  
+- **DoD:** dashboards RED/USE/VALET visíveis; autoscale validado.
 
 ---
 
