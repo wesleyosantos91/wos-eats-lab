@@ -1,0 +1,13 @@
+{
+  "id": null,
+  "title": "Blackbox Probe Overview",
+  "schemaVersion": 27,
+  "version": 1,
+  "timezone": "browser",
+  "panels": [
+    { "type": "stat", "title": "Probe Success",
+      "targets": [{ "expr": "avg(probe_success) by (instance)", "refId": "A" }] },
+    { "type": "graph", "title": "Probe Duration (5m avg)",
+      "targets": [{ "expr": "avg_over_time(probe_duration_seconds[5m])", "refId": "B" }] }
+  ]
+}

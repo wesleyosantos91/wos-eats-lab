@@ -1,0 +1,9 @@
+_format_version: "3.0"
+services:
+  - name: hello-service
+    url: http://host.docker.internal:30080/
+    routes:
+      - name: hello-route
+        paths: ["/hello"]
+        strip_path: false
+        methods: ["GET"]

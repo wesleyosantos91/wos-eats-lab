@@ -58,14 +58,17 @@ Este ecossistema segue o paradigma **Container-First & Cloud-Native**, com ênfa
 
 ---
 
-### 🔑 Sprint 2 — Customer/Auth Service + JWT/OIDC
-**Desafio:** Autenticação e autorização centralizadas.
+### 🔑 Sprint 2 — Customer/Auth Service + JWT/OIDC + RBAC
+**Desafio:** Autenticação e autorização centralizadas com identidade federada.
 
-- **Stack:** Keycloak + Spring Security + Kong JWT plugin.  
-- **Padrões:** OIDC, RBAC, mTLS permissive.  
-- **Testes:** Keycloak Testcontainer, tokens inválidos/expirados.  
-- **Observabilidade:** métricas 2xx/401/403 + auditoria.  
-- **DoD:** endpoints protegidos com JWT válido.
+- **Stack:** Keycloak + Spring Security + Kong OIDC plugin.  
+- **Padrões:** OIDC (Authorization Code / Client Credentials), JWT (RS256), RBAC, mTLS permissive.  
+- **Integração:** Kong ↔ Keycloak (realm `dev`, clients `kong`, `customer-service`).  
+- **Propagação:** Headers `X-Userinfo` e `X-Access-Token` para upstream.  
+- **Segurança:** Roles e scopes aplicados a endpoints; propagação de claims.  
+- **Observabilidade:** métricas 2xx/401/403, logs de autenticação no Loki, tracing de login no Tempo/Jaeger.  
+- **Testes:** tokens inválidos, expirados e roles incorretas.  
+- **DoD:** `/hello` protegido; login via Keycloak; RBAC e auditoria habilitados.
 
 ---
 
@@ -216,6 +219,9 @@ Este ecossistema segue o paradigma **Container-First & Cloud-Native**, com ênfa
 ✔️ Probes, métricas e tracing OTel  
 ✔️ Dashboards RED/USE/VALET  
 ✔️ Monitoramento SQS/SNS + Kafka  
+✔️ Autenticação OIDC (Keycloak ↔ Kong)  
+✔️ RBAC por roles e claims  
+✔️ Logs de autenticação e auditoria  
 ✔️ Testes (unit, integração, contrato, E2E, performance)  
 ✔️ Helm + Argo Rollouts  
 ✔️ Rollback automatizado (AnalysisTemplate)  
@@ -229,17 +235,18 @@ Este ecossistema segue o paradigma **Container-First & Cloud-Native**, com ênfa
 - 🧾 *Site Reliability Engineering* — Google  
 - ☁️ [Spring Boot Docs](https://spring.io/projects/spring-boot)  
 - ⚙️ [Argo CD](https://argo-cd.readthedocs.io) · [Istio](https://istio.io) · [KEDA](https://keda.sh)  
+- 🔑 [Keycloak Docs](https://www.keycloak.org/docs/latest/)  
+- 🌐 [Kong OIDC Plugin](https://docs.konghq.com/hub/kong-inc/openid-connect/)  
 - 🐳 [AWS SQS/SNS SDK](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/home.html)
 
 ---
 
 ## ✅ Resultado Esperado
 Ao final:
-- Aplicar **todos os patterns corporativos** de microsserviços.  
-- Dominar **Kubernetes avançado, observabilidade RED/USE/VALET, SNS/SQS, Kafka e GitOps**.  
-- Entregar uma plataforma **cloud-native, resiliente, auditável e mensurável**.  
-- Atuar com excelência como **Staff/Principal Engineer Java Cloud-Native**.
+- Aplicar **autenticação OIDC corporativa** com Keycloak e Kong.  
+- Proteger APIs via JWT e SSO federado.  
+- Propagar identidade entre serviços.  
+- Auditar e observar métricas de login e autorização.  
+- Entregar uma plataforma **cloud-native, resiliente e segura**.  
 
----
-
-> 💡 **Dica:** Cada sprint deve gerar um módulo ou serviço independente (ex: `catalog-service`, `order-service`), com ADRs, diagramas e README completos.
+> 💡 **Dica:** Cada sprint gera um módulo independente (ex: `catalog-service`, `customer-service`), com ADRs, diagramas e README próprios.
