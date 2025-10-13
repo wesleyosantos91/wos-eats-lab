@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <springProperty scope="context" name="APP_NAME" source="spring.application.name"/>
+  <contextName>${APP_NAME}</contextName>
+
+  <springProfile name="!non-json-logs">
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+        <providers>
+          <!-- Campos customizados (MDC + trace/span + correlation) -->
+          <pattern>
+            <omitEmptyFields>true</omitEmptyFields>
+            <pattern>
+              {
+                "app":"${APP_NAME:-app}",
+                "traceId":"%X{traceId:-}",
+                "x-flowID":"%X{spanId:-}",
+                "x-correlationID":"%X{x-correlationID:-}",
+                "correlation_id":"%X{correlation_id:-}",
+                "parent":"%X{parentId:-}",
+                "exportable":"%X{sampled:-}",
+                "pid":"${PID:-}"
+              }
+            </pattern>
+          </pattern>
+
+          <!-- Timestamp ISO 8601 -->
+          <timestamp>
+            <fieldName>ts</fieldName>
+            <timeZone>UTC</timeZone>
+            <pattern>yyyy-MM-dd'T'HH:mm:ss.SSSX</pattern>
+          </timestamp>
+
+          <logLevel><fieldName>level</fieldName></logLevel>
+          <threadName><fieldName>thread</fieldName></threadName>
+          <loggerName>
+            <fieldName>logger</fieldName>
+            <shortenedLoggerNameLength>40</shortenedLoggerNameLength>
+          </loggerName>
+
+          <!-- MDC completo (exceto chaves já mapeadas acima) -->
+          <mdc>
+            <excludeMdcKeyName>traceId</excludeMdcKeyName>
+            <excludeMdcKeyName>spanId</excludeMdcKeyName>
+            <excludeMdcKeyName>parentId</excludeMdcKeyName>
+            <excludeMdcKeyName>sampled</excludeMdcKeyName>
+            <excludeMdcKeyName>x-correlationID</excludeMdcKeyName>
+            <excludeMdcKeyName>correlation_id</excludeMdcKeyName>
+          </mdc>
+
+          <message><fieldName>msg</fieldName></message>
+
+          <!-- Stacktrace resumido -->
+          <stackTrace>
+            <fieldName>exception</fieldName>
+            <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+              <maxDepthPerThrowable>40</maxDepthPerThrowable>
+              <maxLength>8192</maxLength>
+              <shortenedClassNameLength>40</shortenedClassNameLength>
+              <rootCauseFirst>true</rootCauseFirst>
+            </throwableConverter>
+          </stackTrace>
+        </providers>
+      </encoder>
+    </appender>
+
+    <root level="INFO">
+      <appender-ref ref="consoleAppender"/>
+    </root>
+  </springProfile>
+
+  <!-- Modo texto (opt-in via profile spring: non-json-logs) -->
+  <springProfile name="non-json-logs">
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+  </springProfile>
+</configuration>

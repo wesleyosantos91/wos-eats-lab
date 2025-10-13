@@ -2,10 +2,11 @@ services:
   # Databases
   postgres:
     container_name: postgres
-    image: postgres:18.0
+    image: postgres:17.6
     environment:
       POSTGRES_PASSWORD: postgres
     ports: ["5432:5432"]
+    volumes: ["./postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -15,19 +16,78 @@ services:
 
   postgres_infra:
     container_name: postgres_infra
-    image: postgres:18.0
+    image: postgres:17.6
     environment:
       POSTGRES_DB: infra
       POSTGRES_USER: infra
       POSTGRES_PASSWORD: infra
     ports: ["5433:5432"]
-    volumes: ["./postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh"]
+    volumes: ["./postgres/init-multiple-databases-infra.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U infra -d infra"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  # Message Brokers
+  redpanda:
+    container_name: redpanda
+    image: redpandadata/redpanda:v25.2.9
+    command:
+      - redpanda
+      - start
+      # Kafka API (interno 9092 / externo 19092)
+      - --kafka-addr=internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr=internal://redpanda:9092,external://127.0.0.1:19092
+      # Pandaproxy (interno 8082 / externo 18082)
+      - --pandaproxy-addr=internal://0.0.0.0:8082,external://0.0.0.0:18082
+      - --advertise-pandaproxy-addr=internal://redpanda:8082,external://127.0.0.1:18082
+      # Schema Registry (interno 8081 / externo 18081)
+      - --schema-registry-addr=internal://0.0.0.0:8081,external://0.0.0.0:18081
+      # Admin / RPC
+      - --rpc-addr=redpanda:33145
+      - --advertise-rpc-addr=redpanda:33145
+      # perfil dev em container
+      - --smp=1
+      - --memory=1G
+      - --mode=dev-container
+      - --default-log-level=warn
+    ports: ["19092:19092", "9644:9644", "18082:18082", "18081:18081"]
+    volumes: ["redpanda-data:/var/lib/redpanda/data"]
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  redpanda-console:
+    container_name: redpanda-console
+    image: redpandadata/console:v3.2.2
+    entrypoint: /bin/sh
+    command: -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console --config.filepath /tmp/config.yml'
+    environment:
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["redpanda:9092"]
+        schemaRegistry:
+          enabled: true
+          urls: ["http://redpanda:8081"]
+        redpanda:
+          adminApi:
+            enabled: true
+            urls: ["http://redpanda:9644"]
+    ports: ["8081:8080"]
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
   # Observability stack (metrics, logs, traces)
   prometheus:
@@ -257,3 +317,4 @@ services:
 
 volumes:
   localstack_data:
+  redpanda-data:

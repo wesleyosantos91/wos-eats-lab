@@ -14,6 +14,7 @@
 ![Lambda](https://img.shields.io/badge/Serverless-Lambda-F7A80D?logo=awslambda)
 ![Step Functions](https://img.shields.io/badge/Orchestration-Step%20Functions-FF4F00?logo=aws)
 
+![EMR](https://img.shields.io/badge/Big%20Data-AWS%20EMR-232F3E?logo=amazonaws)
 ![AWS Glue](https://img.shields.io/badge/ETL-AWS%20Glue-FF9900?logo=amazon-aws)
 ![Glue Catalog](https://img.shields.io/badge/Metadata-Glue%20Catalog-232F3E?logo=amazonaws)
 ![Athena](https://img.shields.io/badge/Analytics-Athena-232F3E?logo=amazonaws)
@@ -74,9 +75,9 @@
 
 ## 🧱 Arquitetura de Serviços — Python/Data (derivada do [README-PYTHON.md](README-PYTHON.md))
 
-- **Stack:** Python 3.12; AWS Lambda; AWS Glue (Jobs PySpark); Glue Catalog; Athena; Redshift Serverless; Step Functions; EventBridge; FastAPI; `boto3`; `pandas`/`polars`; Terraform; Poetry/virtualenv.  
+- **Stack:** Python 3.12; AWS Lambda; AWS Glue (Jobs PySpark) **ou** AWS EMR/EMR Serverless (Spark); Glue Catalog; Athena; Redshift Serverless; Step Functions; EventBridge; FastAPI; `boto3`; `pandas`/`polars`; Terraform; Poetry/virtualenv.  
 - **Arquitetura:** Pipelines bronze → silver → gold; ingestão via Lambda (SQS→S3/bronze); transformação com Glue Jobs (registro automático no Glue Catalog); orquestração com Step Functions; exposição de KPIs via FastAPI Data Service; triggers por EventBridge (S3 PUT/cron).  
-- **Persistência/Storage:** S3 (camadas bronze/silver/gold); Glue Catalog como fonte única de metadados; Athena e Redshift Spectrum para consultas analíticas.  
+- **Persistência/Storage:** S3 (camadas bronze/silver/gold); Glue Catalog como fonte única de metadados (compute via Glue ou EMR); Athena e Redshift Spectrum para consultas analíticas.  
 - **Mensageria/Ingestão:** SQS → Lambda (idempotência, DLQ, KMS); integração com eventos publicados por serviços Go/Java (SNS→SQS).  
 - **Observabilidade:** CloudWatch + OpenTelemetry; métricas RED/USE para DataOps; dashboards centralizados (Prometheus/Grafana) e rastreabilidade por domínio.  
 - **Resiliência:** DLQ e rollback automáticos em Step Functions/Lambda; retries e idempotência garantidos em ingestão; criptografia KMS.  
@@ -256,7 +257,7 @@
 
 ---
 
-### 🏗️ Sprint 16 — Big Data em Escala (Glue + PySpark + Catalog)
+### 🏗️ Sprint 16 — Big Data em Escala (Glue/EMR + PySpark + Catalog)
 **Desafio:** Transformação bronze → silver governada.
 
 - Stack: Glue Jobs (PySpark), S3, Glue Catalog, Terraform.  
@@ -269,7 +270,7 @@
 **Desafio:** Compor pipelines declarativos e automatizar deploys.
 
 - Stack: Step Functions, EventBridge, Terraform.  
-- Objetivos: state machines bronze → silver → gold com Glue/Lambda; triggers por S3/cron; DLQ e rollback.  
+- Objetivos: state machines bronze → silver → gold com Glue/EMR/Lambda; triggers por S3/cron; DLQ e rollback.  
 - DoD: DAGs visíveis e monitoradas com alarmes.
 
 ---
@@ -296,7 +297,7 @@
 **Desafio:** Confiabilidade, qualidade e segurança ponta a ponta.
 
 - Stack: CloudWatch, Prometheus, OpenTelemetry, Lake Formation, Great Expectations, Terraform.  
-- Objetivos: instrumentar Glue/Lambda/SFN (RED/USE), dashboards de SLO/throughput/erro, Data Quality as Code, masking/RLS/CLS, versionar contratos.  
+- Objetivos: instrumentar Glue/EMR/Lambda/SFN (RED/USE), dashboards de SLO/throughput/erro, Data Quality as Code, masking/RLS/CLS, versionar contratos.  
 - DoD: SLOs definidos, governança ativa, qualidade validada em CI/CD.
 
 ---

@@ -2,6 +2,7 @@
 ### *(Python 3.12 + AWS Glue + Glue Catalog + Step Functions + Athena/Redshift + DataOps)*
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)
+![EMR](https://img.shields.io/badge/Big%20Data-AWS%20EMR-232F3E?logo=amazonaws)
 ![AWS Glue](https://img.shields.io/badge/ETL-AWS%20Glue-FF9900?logo=amazon-aws)
 ![Glue Catalog](https://img.shields.io/badge/Metadata-Glue%20Catalog-232F3E?logo=amazonaws)
 ![Athena](https://img.shields.io/badge/Analytics-Athena-232F3E?logo=amazonaws)
@@ -39,7 +40,7 @@
                            │
                            ▼
 +--------------------------------------------------------------+
-|                AWS Glue (PySpark - Transformação)            |
+|                AWS Glue (PySpark - Transformação) / **AWS EMR (Spark/EMR Serverless)**            |
 |  - ETL bronze → silver → gold                                |
 |  - Limpeza, schema, enriquecimento, deduplicação             |
 |  - Atualiza metadados no Glue Catalog                        |
@@ -86,12 +87,12 @@ IaC: **Terraform** (módulos, workspaces e automação)
 
 ---
 
-### 🚰 Sprint 16 — Big Data e ETL em Escala (Glue + PySpark + Catalog)
+### 🚰 Sprint 16 — Big Data e ETL em Escala (Glue/EMR + PySpark + Catalog)
 **Desafio:** transformar dados brutos em silver com schema e partições governadas.
 
-- **Stack:** AWS Glue (Jobs), PySpark, S3, **Glue Catalog**, Terraform  
+- **Stack:** AWS Glue (Jobs) **ou** **AWS EMR/EMR Serverless (Spark)**, PySpark, S3, **Glue Catalog**, Terraform  
 - **Objetivos:**  
-  - Jobs **bronze → silver** (normalização, tipos, enriquecimento).  
+  - Jobs **bronze → silver** (normalização, tipos, enriquecimento) usando **Glue** *ou* **EMR/EMR Serverless**.  
   - **Schema evolution** e partições (`partition_yyyymmdd`).  
   - Registro automático no **Glue Catalog** (tabelas `orders_silver`, `payments_silver`).  
   - Testes locais com `glue-local` + `pytest`.  
@@ -107,7 +108,7 @@ IaC: **Terraform** (módulos, workspaces e automação)
 
 - **Stack:** AWS Step Functions, EventBridge, Terraform  
 - **Objetivos:**  
-  - State Machines **bronze → silver → gold** com Glue/Lambda.  
+  - State Machines **bronze → silver → gold** com Glue/**EMR**/Lambda.  
   - Triggers EventBridge (S3 PUT/cron).  
   - Módulos Terraform para Glue, Lambda e SFN (reuso + idempotência).  
   - DLQ e rollback automáticos com alarmes.  
@@ -152,7 +153,7 @@ IaC: **Terraform** (módulos, workspaces e automação)
 
 - **Stack:** CloudWatch, **Prometheus**, **OpenTelemetry**, **Lake Formation**, Great Expectations, Terraform  
 - **Objetivos:**  
-  - Instrumentar Glue/Lambda/Step Functions (RED/USE).  
+  - Instrumentar Glue/**EMR**/Lambda/Step Functions (RED/USE).  
   - Dashboards DataOps (SLOs: sucesso, duração, throughput, custo).  
   - **Data Quality as Code** (Great Expectations) com gates em CI/CD.  
   - Governança Lake Formation (masking, RLS, CLS) + versionamento de contratos (`data-contracts/`).  
@@ -168,7 +169,7 @@ IaC: **Terraform** (módulos, workspaces e automação)
 ✔️ Ambiente Python padronizado (Poetry + Makefile)  
 ✔️ **Glue Catalog** centralizado e versionado (`data-contracts/`)  
 ✔️ Schemas compatíveis com entidades Java/Go (Order, Payment, Customer)  
-✔️ Pipelines **Glue → Step Functions → Athena** automatizados via **Terraform**  
+✔️ Pipelines **Glue/EMR → Step Functions → Athena** automatizados via **Terraform**  
 ✔️ Lambdas observáveis (OTel + CloudWatch)  
 ✔️ Data Quality (pytest + Great Expectations)  
 ✔️ Governança Lake Formation (masking, RLS/CLS)  

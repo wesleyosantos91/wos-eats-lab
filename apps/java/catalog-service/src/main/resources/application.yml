@@ -1,0 +1,99 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: catalog-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/catalog?currentSchema=catalog_schema
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    hikari:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      connectionTimeout: 3000
+      idleTimeout: 30000
+      maxLifetime: 1800000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.format_sql: true
+      hibernate.jdbc.time_zone: UTC
+      hibernate.default_schema: public
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    schemas: catalog_schema
+
+management:
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+    enable:
+      jvm: true
+      process: true
+      system: true
+      logback: true
+      logstash: true
+  endpoints:
+    web:
+      exposure:
+        include: metrics,info,health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+    baggage:
+      correlation:
+        enabled: true
+        fields: [x-correlationID]
+      remote-fields: [x-correlationID]
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+    metrics:
+      export:
+        enabled: true
+        url: http://localhost:4318/v1/metrics
+  observations:
+    key-values:
+      my_custom_tag: ${spring.application.name}
+
+resilience4j:
+  retry:
+    instances:
+      default:
+        max-attempts: 3
+        wait-duration: 200ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        randomized-wait-factor: 0.5
+  circuitbreaker:
+    instances:
+      default:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 20
+        failure-rate-threshold: 50
+        wait-duration-in-open-state:
+          seconds: 10
+        permitted-number-of-calls-in-half-open-state: 3
+  ratelimiter:
+    instances:
+      default:
+        limit-for-period: 50
+        limit-refresh-period: 1s
+        timeout-duration: 0s
+  bulkhead:
+    instances:
+      default:
+        max-concurrent-calls: 20
+        max-wait-duration:
+          seconds: 0

@@ -19,7 +19,6 @@ scrape_configs:
     scrape_interval: 10s
     static_configs:
       - targets: ["otel-collector:8889"]
-      - targets: ["otel-collector:8888"]
 
   # (Opcional) Auto-scrape do Prometheus p/ health do próprio Prometheus
   - job_name: prometheus
