@@ -7,6 +7,10 @@ spring:
   threads:
     virtual:
       enabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   datasource:
     url: jdbc:postgresql://localhost:5432/catalog?currentSchema=catalog_schema
     username: postgres
@@ -34,12 +38,13 @@ spring:
   cloud:
     aws:
       s3:
+        bucket: wos-eats-lab-catalog-bucket
         region: us-east-1
         path-style-access-enabled: true
         endpoint: http://localhost:4566
       credentials:
-        access-key: not-a-real-key
-        secret-key: not-a-real-secret
+        access-key: test
+        secret-key: test
 management:
   metrics:
     distribution:
@@ -78,33 +83,33 @@ management:
     key-values:
       my_custom_tag: ${spring.application.name}
 
-resilience4j:
-  retry:
-    instances:
-      default:
-        max-attempts: 3
-        wait-duration: 200ms
-        enable-exponential-backoff: true
-        exponential-backoff-multiplier: 2
-        randomized-wait-factor: 0.5
-  circuitbreaker:
-    instances:
-      default:
-        sliding-window-type: COUNT_BASED
-        sliding-window-size: 20
-        failure-rate-threshold: 50
-        wait-duration-in-open-state:
-          seconds: 10
-        permitted-number-of-calls-in-half-open-state: 3
-  ratelimiter:
-    instances:
-      default:
-        limit-for-period: 50
-        limit-refresh-period: 1s
-        timeout-duration: 0s
-  bulkhead:
-    instances:
-      default:
-        max-concurrent-calls: 20
-        max-wait-duration:
-          seconds: 0
+#resilience4j:
+#  retry:
+#    instances:
+#      default:
+#        max-attempts: 3
+#        wait-duration: 200ms
+#        enable-exponential-backoff: true
+#        exponential-backoff-multiplier: 2
+#        randomized-wait-factor: 0.5
+#  circuitbreaker:
+#    instances:
+#      default:
+#        sliding-window-type: COUNT_BASED
+#        sliding-window-size: 20
+#        failure-rate-threshold: 50
+#        wait-duration-in-open-state:
+#          seconds: 10
+#        permitted-number-of-calls-in-half-open-state: 3
+#  ratelimiter:
+#    instances:
+#      default:
+#        limit-for-period: 50
+#        limit-refresh-period: 1s
+#        timeout-duration: 0s
+#  bulkhead:
+#    instances:
+#      default:
+#        max-concurrent-calls: 20
+#        max-wait-duration:
+#          seconds: 0

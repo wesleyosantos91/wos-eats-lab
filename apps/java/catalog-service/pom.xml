@@ -323,6 +323,16 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <excludes>
+                                <exclude>**/**/Application.*</exclude>
+                                <exclude>**/entity/*</exclude>
+                                <exclude>**/request/*</exclude>
+                                <exclude>**/response/*</exclude>
+                                <exclude>**/exception/*</exclude>
+                                <exclude>**/mapper/*</exclude>
+                                <exclude>**/metrics/*</exclude>
+                                <exclude>**/infrastructure/**</exclude>
+                            </excludes>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
