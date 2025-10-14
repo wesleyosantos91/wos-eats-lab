@@ -9,7 +9,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
+import java.time.Instant;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -32,11 +36,6 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.filter.ServerHttpObservationFilter;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -61,7 +60,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         LOG.warn(ERROR_LOG_MESSAGE, ex.getClass().getSimpleName(), ex.getMessage());
 
-        List<ErrorResponse> errors = ex.getBindingResult()
+        final List<ErrorResponse> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(this::buildErrorResponse)
@@ -76,7 +75,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                         "GLOBAL_VALIDATION_ERROR"
                 )));
 
-        CustomProblemDetail problemDetail = new CustomProblemDetail(
+        final CustomProblemDetail problemDetail = new CustomProblemDetail(
                 HttpStatus.BAD_REQUEST,
                 "Validation Failed",
                 "One or more validation errors occurred",
@@ -95,12 +94,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         LOG.warn(ERROR_LOG_MESSAGE, ex.getClass().getSimpleName(), ex.getMessage());
 
-        List<ErrorResponse> errors = ex.getConstraintViolations()
+        final List<ErrorResponse> errors = ex.getConstraintViolations()
                 .stream()
                 .map(this::buildErrorResponse)
                 .toList();
 
-        CustomProblemDetail problemDetail = new CustomProblemDetail(
+        final CustomProblemDetail problemDetail = new CustomProblemDetail(
                 HttpStatus.BAD_REQUEST,
                 "Constraint Violation",
                 "One or more constraint violations occurred",
@@ -119,7 +118,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         LOG.info(ERROR_LOG_MESSAGE, ex.getClass().getSimpleName(), ex.getMessage());
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setTitle(RESOURCE_NOT_FOUND);
         problemDetail.setProperty(TIMESTAMP, Instant.now());
@@ -138,7 +137,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         LOG.info(ERROR_LOG_MESSAGE, ex.getClass().getSimpleName(), ex.getMessage());
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.CONFLICT, ex.getMessage());
         problemDetail.setTitle("Resource Already Exists");
         problemDetail.setProperty(TIMESTAMP, Instant.now());
@@ -157,7 +156,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         LOG.warn(ERROR_LOG_MESSAGE, ex.getClass().getSimpleName(), ex.getMessage());
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
         problemDetail.setTitle("Business Rule Violation");
         problemDetail.setProperty(TIMESTAMP, Instant.now());
@@ -175,7 +174,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         LOG.error(ERROR_LOG_MESSAGE, ex.getClass().getSimpleName(), ex.getMessage(), ex);
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.CONFLICT, "Data integrity violation occurred");
         problemDetail.setTitle("Data Integrity Violation");
         problemDetail.setProperty(TIMESTAMP, Instant.now());
@@ -192,7 +191,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         LOG.error(ERROR_LOG_MESSAGE, ex.getClass().getSimpleName(), ex.getMessage(), ex);
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.SERVICE_UNAVAILABLE, "Database access error occurred");
         problemDetail.setTitle("Database Error");
         problemDetail.setProperty(TIMESTAMP, Instant.now());
@@ -209,10 +208,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         LOG.warn(ERROR_LOG_MESSAGE, ex.getClass().getSimpleName(), ex.getMessage());
 
-        String error = String.format("Parameter '%s' should be of type '%s'",
+        final String error = String.format("Parameter '%s' should be of type '%s'",
                 ex.getName(), Objects.requireNonNull(ex.getRequiredType()).getSimpleName());
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST, error);
         problemDetail.setTitle("Type Mismatch");
         problemDetail.setProperty(TIMESTAMP, Instant.now());
@@ -233,9 +232,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         LOG.warn(ERROR_LOG_MESSAGE, ex.getClass().getSimpleName(), ex.getMessage());
 
-        String error = ex.getParameterName() + " parameter is missing";
+        final String error = ex.getParameterName() + " parameter is missing";
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST, error);
         problemDetail.setTitle("Missing Parameter");
         problemDetail.setProperty(TIMESTAMP, Instant.now());
@@ -254,7 +253,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         LOG.warn(ERROR_LOG_MESSAGE, ex.getClass().getSimpleName(), ex.getMessage());
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST, "Malformed JSON request");
         problemDetail.setTitle("Message Not Readable");
         problemDetail.setProperty(TIMESTAMP, Instant.now());
@@ -271,7 +270,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         LOG.error(ERROR_LOG_MESSAGE, ex.getClass().getSimpleName(), ex.getMessage(), ex);
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
         problemDetail.setTitle("Internal Server Error");
         problemDetail.setProperty(TIMESTAMP, Instant.now());
@@ -290,7 +289,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private void setObservationError(Exception ex, WebRequest request) {
         if (request instanceof ServletWebRequest servletWebRequest) {
-            HttpServletRequest httpServletRequest = servletWebRequest.getRequest();
+            final HttpServletRequest httpServletRequest = servletWebRequest.getRequest();
             ServerHttpObservationFilter.findObservationContext(httpServletRequest)
                     .ifPresent(context -> context.setError(ex));
         }
@@ -315,7 +314,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     private String getPropertyName(Path path) {
-        String[] pathElements = path.toString().split("\\.");
+        final String[] pathElements = path.toString().split("\\.");
         return pathElements[pathElements.length - 1];
     }
 
@@ -331,7 +330,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private void logRequestDetails(WebRequest request, String errorType) {
         if (LOG.isDebugEnabled() && request instanceof ServletWebRequest servletWebRequest) {
-            HttpServletRequest httpRequest = servletWebRequest.getRequest();
+            final HttpServletRequest httpRequest = servletWebRequest.getRequest();
             logRequestDetails(httpRequest, errorType);
         }
     }
@@ -347,8 +346,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 
         if (body instanceof ProblemDetail problemDetail) {
-            Map<String, Object> props = problemDetail.getProperties();
-            boolean shouldAddTimestamp = (props == null) || !props.containsKey(TIMESTAMP);
+            final Map<String, Object> props = problemDetail.getProperties();
+            final boolean shouldAddTimestamp = props == null || !props.containsKey(TIMESTAMP);
             if (shouldAddTimestamp) {
                 problemDetail.setProperty(TIMESTAMP, Instant.now());
             }

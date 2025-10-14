@@ -11,19 +11,17 @@ import io.github.wesleyosantos91.catalog.domain.repository.KitchenRepository;
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 public class KitchenService {
@@ -33,6 +31,7 @@ public class KitchenService {
     private static final String RESOURCE_NAME = "Kitchen";
     public static final String UNEXPECTED_ERROR = "UNEXPECTED_ERROR";
     public static final String DATA_INTEGRITY_VIOLATION = "DATA_INTEGRITY_VIOLATION";
+    public static final String NAME = "name";
 
     private final KitchenRepository repository;
 
@@ -47,7 +46,7 @@ public class KitchenService {
         try {
             if (repository.existsByName(request.name())) {
                 LOGGER.warn("Attempt to create kitchen with existing name: {}", request.name());
-                throw new ResourceAlreadyExistsException(RESOURCE_NAME, "name", request.name());
+                throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, request.name());
             }
 
             final KitchenEntity kitchenEntity = KitchenMapper.MAPPER.toEntity(request);
@@ -57,7 +56,7 @@ public class KitchenService {
             return savedEntity;
 
         } catch (DataIntegrityViolationException _) {
-            throw new ResourceAlreadyExistsException(RESOURCE_NAME, "name", request.name());
+            throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, request.name());
 
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while creating kitchen. name=" + request.name(), ex, DATABASE_ERROR);
@@ -92,19 +91,18 @@ public class KitchenService {
         LOGGER.debug("Searching kitchens with query: {} and pageable: {}", queryRequest, pageable);
 
         try {
-            final KitchenEntity exampleEntity = KitchenMapper.MAPPER.toEntity(queryRequest);
-            final Example<KitchenEntity> example = Example.of(exampleEntity);
-
-            final Page<KitchenEntity> result = repository.findAll(example, pageable);
+            final Page<KitchenEntity> result = repository.findByFilters(
+                    queryRequest.name(),
+                    pageable
+            );
 
             LOGGER.debug("Kitchen search completed. Found {} results out of {} total",
-                result.getNumberOfElements(), result.getTotalElements());
+                    result.getNumberOfElements(), result.getTotalElements());
             return result;
 
         } catch (DataAccessException ex) {
-            throw new BusinessException("Database error while searching kitchens. query=" + queryRequest + ", pageable=" + pageable, ex, DATABASE_ERROR);
-        } catch (Exception ex) {
-            throw new BusinessException("Unexpected error while searching kitchens. query=" + queryRequest + ", pageable=" + pageable, ex, UNEXPECTED_ERROR);
+            throw new BusinessException("Database error while searching kitchens. "
+                    + "query=" + queryRequest + ", pageable=" + pageable, ex, DATABASE_ERROR);
         }
     }
 
@@ -120,7 +118,7 @@ public class KitchenService {
             if (!Objects.equals(current.getName(), request.name())
                     && repository.existsByName(request.name())) {
                 LOGGER.warn("Attempt to update kitchen name to existing name: {} for id: {}", request.name(), id);
-                throw new ResourceAlreadyExistsException(RESOURCE_NAME, "name", request.name());
+                throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, request.name());
             }
 
             final KitchenEntity updatedKitchen = KitchenMapper.MAPPER.toEntity(request, current);
@@ -130,7 +128,7 @@ public class KitchenService {
             return savedEntity;
 
         } catch (DataIntegrityViolationException _) {
-            throw new ResourceAlreadyExistsException(RESOURCE_NAME, "name", request.name());
+            throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, request.name());
 
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while updating kitchen. id=" + id + ", name=" + request.name(), ex, DATABASE_ERROR);

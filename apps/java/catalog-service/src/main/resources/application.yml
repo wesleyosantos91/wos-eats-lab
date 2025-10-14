@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: catalog-service
+  threads:
+    virtual:
+      enabled: true
   datasource:
     url: jdbc:postgresql://localhost:5432/catalog?currentSchema=catalog_schema
     username: ${DB_USERNAME:postgres}
