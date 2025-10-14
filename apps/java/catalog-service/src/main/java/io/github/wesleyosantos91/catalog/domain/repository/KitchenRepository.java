@@ -17,7 +17,7 @@ public interface KitchenRepository extends JpaRepository<KitchenEntity, UUID> {
 
     @Query("""
             SELECT k FROM KitchenEntity k 
-            WHERE (:name IS NULL OR LOWER(k.name) LIKE LOWER(CONCAT('%', :name, '%')))
+            WHERE (:name IS NULL OR LOWER(CAST(k.name AS string)) LIKE LOWER(CONCAT('%', CAST(:name AS string), '%')))
             """)
     Page<KitchenEntity> findByFilters(@Param("name") String name,
                                       Pageable pageable);

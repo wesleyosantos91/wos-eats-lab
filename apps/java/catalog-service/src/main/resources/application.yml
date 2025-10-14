@@ -9,8 +9,8 @@ spring:
       enabled: true
   datasource:
     url: jdbc:postgresql://localhost:5432/catalog?currentSchema=catalog_schema
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    username: postgres
+    password: postgres
     hikari:
       maximumPoolSize: 10
       minimumIdle: 2
@@ -31,7 +31,15 @@ spring:
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
     schemas: catalog_schema
-
+  cloud:
+    aws:
+      s3:
+        region: us-east-1
+        path-style-access-enabled: true
+        endpoint: http://localhost:4566
+      credentials:
+        access-key: not-a-real-key
+        secret-key: not-a-real-secret
 management:
   metrics:
     distribution:
