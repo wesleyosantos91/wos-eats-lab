@@ -40,7 +40,25 @@ Este projeto implementa três tipos de testes:
 - **Mockito** (incluído no spring-boot-starter-test)
 - **MockMvc** (testes de controller)
 
-## 📁 Estrutura de Testes
+## � Configuração e Dependências
+
+### Plugins Maven Configurados
+- **Maven Surefire Plugin**: Execução de Unit Tests
+- **Maven Failsafe Plugin**: Execução de Integration Tests e Contract Tests  
+- **JaCoCo Plugin**: Relatórios de cobertura de código
+- **PIT Plugin**: Testes de mutação
+- **Checkstyle Plugin**: Validação de qualidade de código
+
+### Dependências de Teste Principais
+- **JUnit 5**: Framework de testes unitários
+- **Spring Boot Test**: Testes integrados com Spring Boot
+- **Testcontainers**: Containers para testes de integração
+- **Cucumber**: Testes BDD (Behavior Driven Development)
+- **Rest Assured 5.5.6**: Testes de contrato de API REST
+- **JSON Schema Validator 5.5.6**: Validação de schemas JSON
+- **Mockito**: Framework de mocks
+
+### Estrutura de Pacotes de Teste
 
 ```
 src/test/
@@ -110,11 +128,17 @@ mvn clean test "-Dskip.it=true"
 ```
 ✅ **Resultado atual: 71 testes passando (0 falhas)**
 
+### Executar SOMENTE Contract Tests (Rest Assured)
+```bash
+mvn clean verify "-Dtest=*ContractIT"
+```
+✅ **Resultado atual: 19 testes de contrato passando (0 falhas)**
+
 ### Executar SOMENTE Integration Tests (Failsafe + BDD)
 ```bash
 mvn clean verify "-Dskip.ut=true"
 ```
-✅ **Resultado atual: 41 testes executados (0 falhas, 41 passando)**
+✅ **Resultado atual: 60 testes executados (0 falhas, 60 passando)**
 
 **Status dos testes:**
 - ✅ Todos os testes de integração estão passando
@@ -139,6 +163,11 @@ mvn clean install "-Dskip.ut=true" "-Dskip.it=true"
 
 ## 🏷️ Filtrar Testes BDD por Tags
 
+### Executar SOMENTE testes de contrato
+```bash
+mvn clean test "-Dtest=*ContractIT"
+```
+
 ### Filtrar somente testes @smoke
 ```bash
 mvn verify "-Dcucumber.filter.tags=@smoke"
@@ -157,8 +186,8 @@ mvn verify "-Dcucumber.filter.tags=not @wip"
 ## 📊 Resultados dos Testes
 
 ### Resumo Geral
-- **Total de Testes**: 112 testes (71 UT + 41 IT)
-- **Sucesso**: 112 ✅
+- **Total de Testes**: 131 testes (71 UT + 60 IT)
+- **Sucesso**: 131 ✅
 - **Falhas**: 0
 - **Status**: ✅ Todos os testes passando
 
@@ -169,10 +198,10 @@ mvn verify "-Dcucumber.filter.tags=not @wip"
 - **Tempo**: ~12 segundos
 
 ### Integration Tests (Failsafe)
-- **Total**: 41 testes (27 IT + 14 BDD)
-- **Sucesso**: 41 ✅
+- **Total**: 60 testes (27 IT + 19 Contract + 14 BDD)
+- **Sucesso**: 60 ✅
 - **Falhas**: 0 ✅
-- **Tempo**: ~38 segundos
+- **Tempo**: ~45 segundos
 
 #### Testes de Integração (Controllers IT)
 **KitchenControllerIT:**
@@ -188,6 +217,42 @@ mvn verify "-Dcucumber.filter.tags=not @wip"
 - ✅ GET /v1/restaurants - Listar restaurantes (5 testes)
 - ✅ GET /v1/restaurants/{id} - Buscar restaurante por ID (2 testes)
 - ✅ POST /v1/restaurants - Criar restaurante (4 testes)
+
+#### Testes de Contrato (Contract Tests)
+**KitchenControllerContractIT** - 19 testes usando Rest Assured e JSON Schema Validator:
+- ✅ **POST /v1/kitchens** - Criar cozinha (5 testes)
+  - Criar com dados válidos e validar response schema
+  - Validar headers de resposta (Content-Type, Location)
+  - Validar status codes corretos
+  - Criar com nome vazio (400 Bad Request)
+  - Criar com corpo da requisição vazio (400 Bad Request)
+- ✅ **GET /v1/kitchens/{id}** - Buscar cozinha por ID (3 testes)
+  - Buscar cozinha existente e validar response schema
+  - Validar headers de resposta corretos
+  - Buscar cozinha inexistente (404 Not Found)
+- ✅ **GET /v1/kitchens** - Listar cozinhas (4 testes)
+  - Listar com paginação e validar page response schema
+  - Validar headers de resposta corretos
+  - Listar com parâmetros de ordenação
+  - Listar com filtros de busca
+- ✅ **PUT /v1/kitchens/{id}** - Atualizar cozinha (4 testes)
+  - Atualizar com dados válidos e validar response schema
+  - Validar headers de resposta corretos
+  - Atualizar cozinha inexistente (404 Not Found)
+  - Atualizar com dados inválidos (400 Bad Request)
+- ✅ **DELETE /v1/kitchens/{id}** - Deletar cozinha (3 testes)
+  - Deletar cozinha existente (204 No Content)
+  - Validar headers de resposta corretos
+  - Deletar cozinha inexistente (404 Not Found)
+
+**Tecnologias utilizadas nos Contract Tests:**
+- **Rest Assured 5.5.6**: Framework para testes de API REST
+- **JSON Schema Validator 5.5.6**: Validação de schemas JSON
+- **Testcontainers**: Ambiente isolado com PostgreSQL
+- **Schemas JSON**: Validação estrutural das respostas
+  - `kitchen-response-schema.json`: Schema para resposta de cozinha individual
+  - `kitchen-page-response-schema.json`: Schema para resposta paginada
+  - `error-response-schema.json`: Schema para respostas de erro
 
 #### Testes BDD/Cucumber
 **Kitchen Features:**
@@ -498,6 +563,13 @@ mvn checkstyle:check
 - Usar `@Mock` e `@InjectMocks` para testes unitários puros
 - Verificar chamadas de métodos com `verify()`
 
+### 5. Contract Tests
+- Usar Rest Assured para testes de API REST
+- Validar schemas JSON das respostas
+- Testar headers HTTP corretos
+- Cobrir todos os endpoints e status codes
+- Usar Testcontainers para ambiente isolado
+
 ## 🔍 Checkstyle
 
 ### Executar validação
@@ -541,12 +613,14 @@ mvn checkstyle:check
 - [Testcontainers](https://testcontainers.com/)
 - [JaCoCo Documentation](https://www.jacoco.org/jacoco/trunk/doc/)
 - [PIT Mutation Testing](https://pitest.org/)
+- [Rest Assured Documentation](https://rest-assured.io/)
+- [JSON Schema Validator](https://github.com/java-json-tools/json-schema-validator)
 
 ---
 
 **Última atualização**: 2025-10-14
 **Versão do Spring Boot**: 3.5.6
 **Versão do Java**: 25
-**Status dos Testes**: ✅ TODOS PASSANDO (112/112)
+**Status dos Testes**: ✅ TODOS PASSANDO (131/131)
 **Cobertura de Código**: ⚠️ 68% (objetivo: 90%)
 **Testes de Mutação**: ⚠️ 64% (objetivo: 90%)
