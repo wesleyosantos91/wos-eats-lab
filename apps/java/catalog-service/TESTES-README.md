@@ -24,23 +24,28 @@ Este projeto implementa três tipos de testes:
 src/test/
 ├── java/
 │   └── io/github/wesleyosantos91/catalog/
-│       ├── TestcontainersConfiguration.java        # ✅ Configuração Testcontainers (ÚNICA)
+│       ├── ApplicationTests.java                       # ✅ Smoke test da aplicação
+│       ├── TestcontainersConfiguration.java            # ✅ Configuração Testcontainers (ÚNICA)
 │       ├── api/v1/controller/
-│       │   ├── KitchenControllerTest.java          # UT - Testes unitários do controller
-│       │   └── KitchenControllerIT.java            # IT - Testes de integração
+│       │   ├── KitchenControllerTest.java              # ✅ UT - Controller (8 testes)
+│       │   ├── KitchenControllerIT.java                # ✅ IT - Controller (10 testes)
+│       │   ├── RestaurantControllerTest.java           # ✅ UT - Controller (16 testes)
+│       │   └── RestaurantControllerIT.java             # ✅ IT - Controller (17 testes)
 │       ├── domain/service/
-│       │   └── KitchenServiceTest.java             # UT - Testes unitários do service
+│       │   ├── KitchenServiceTest.java                 # ✅ UT - Service (12 testes)
+│       │   └── RestaurantServiceTest.java              # ✅ UT - Service (29 testes)
 │       └── cucumber/
-│           ├── CucumberIT.java                      # Suite BDD (roda no Failsafe)
+│           ├── CucumberIT.java                         # ✅ Suite BDD (14 cenários)
 │           ├── step/
-│           │   └── KitchenStep.java                 # Step Definitions
+│           │   ├── KitchenStep.java                    # ✅ Step Definitions
+│           │   └── RestaurantStep.java                 # ✅ Step Definitions
 │           └── utils/
-│               └── FeatureUtils.java                # Utilitários
+│               └── FeatureUtils.java                   # ✅ Utilitários
 └── resources/
-    ├── application-integration.yml                  # Configuração profile integration
-    ├── application-test.yml                         # Configuração profile test
+    ├── application-integration.yml                     # ✅ Configuração profile integration
     └── features/
-        └── kitchen.feature                          # Cenários BDD em português
+        ├── kitchen.feature                             # ✅ Cenários BDD Kitchen (8 cenários)
+        └── restaurant.feature                          # ✅ Cenários BDD Restaurant (6 cenários)
 ```
 
 ## 🐳 Testcontainers Configuration
@@ -79,15 +84,15 @@ mvn clean verify
 
 ### Executar SOMENTE Unit Tests (Surefire)
 ```bash
-mvn clean test -Dskip.it=true
+mvn clean test "-Dskip.it=true"
 ```
-✅ **Resultado atual: 25 testes passando (0 falhas)**
+✅ **Resultado atual: 65 testes passando (0 falhas)**
 
 ### Executar SOMENTE Integration Tests (Failsafe + BDD)
 ```bash
-mvn clean verify -Dskip.ut=true
+mvn clean verify "-Dskip.ut=true"
 ```
-✅ **Resultado atual: 18 testes executados (0 falhas, 18 passando)**
+✅ **Resultado atual: 41 testes executados (0 falhas, 41 passando)**
 
 **Status dos testes:**
 - ✅ Todos os testes de integração estão passando
@@ -107,48 +112,63 @@ mvn clean install -DskipTests
 ou
 
 ```bash
-mvn clean install -Dskip.ut=true -Dskip.it=true
+mvn clean install "-Dskip.ut=true" "-Dskip.it=true"
 ```
 
 ## 🏷️ Filtrar Testes BDD por Tags
 
-### Executar somente testes @smoke
+### Filtrar somente testes @smoke
 ```bash
-mvn verify -Dcucumber.filter.tags="@smoke"
+mvn verify "-Dcucumber.filter.tags=@smoke"
 ```
 
-### Executar somente testes @regression
+### Filtrar somente testes @regression
 ```bash
-mvn verify -Dcucumber.filter.tags="@regression"
+mvn verify "-Dcucumber.filter.tags=@regression"
 ```
 
 ### Excluir testes @wip (work in progress)
 ```bash
-mvn verify -Dcucumber.filter.tags="not @wip"
+mvn verify "-Dcucumber.filter.tags=not @wip"
 ```
 
 ## 📊 Resultados dos Testes
 
-### Unit Tests (Surefire)
-- **Total**: 25 testes
-- **Sucesso**: 25 ✅
+### Resumo Geral
+- **Total de Testes**: 106 testes (65 UT + 41 IT)
+- **Sucesso**: 106 ✅
 - **Falhas**: 0
-- **Tempo**: ~6 segundos
+- **Status**: ✅ Todos os testes passando
+
+### Unit Tests (Surefire)
+- **Total**: 65 testes
+- **Sucesso**: 65 ✅
+- **Falhas**: 0
+- **Tempo**: ~17 segundos
 
 ### Integration Tests (Failsafe)
-- **Total**: 18 testes (10 IT + 8 BDD)
-- **Sucesso**: 18 ✅
+- **Total**: 41 testes (27 IT + 14 BDD)
+- **Sucesso**: 41 ✅
 - **Falhas**: 0 ✅
-- **Tempo**: ~18 segundos
+- **Tempo**: ~35 segundos
 
-#### Testes de Integração (KitchenControllerIT)
+#### Testes de Integração (Controllers IT)
+**KitchenControllerIT:**
 - ✅ DELETE /v1/kitchens/{id} - Deletar cozinha (2 testes)
 - ✅ PUT /v1/kitchens/{id} - Atualizar cozinha (2 testes)
 - ✅ GET /v1/kitchens - Listar cozinhas (2 testes)
 - ✅ GET /v1/kitchens/{id} - Buscar cozinha por ID (2 testes)
-- ✅ POST /v1/kitchens - Criar cozinha (3 testes)
+- ✅ POST /v1/kitchens - Criar cozinha (2 testes)
+
+**RestaurantControllerIT:**
+- ✅ DELETE /v1/restaurants/{id} - Deletar restaurante (2 testes)
+- ✅ PUT /v1/restaurants/{id} - Atualizar restaurante (4 testes)
+- ✅ GET /v1/restaurants - Listar restaurantes (5 testes)
+- ✅ GET /v1/restaurants/{id} - Buscar restaurante por ID (2 testes)
+- ✅ POST /v1/restaurants - Criar restaurante (4 testes)
 
 #### Testes BDD/Cucumber
+**Kitchen Features:**
 - ✅ Criar uma nova cozinha com sucesso
 - ✅ Buscar uma cozinha por ID
 - ✅ Listar cozinhas com paginação
@@ -157,10 +177,20 @@ mvn verify -Dcucumber.filter.tags="not @wip"
 - ✅ Tentar criar cozinha com nome duplicado
 - ✅ Buscar cozinha inexistente
 
+**Restaurant Features:**
+- ✅ Criar um novo restaurante com sucesso
+- ✅ Buscar um restaurante por ID
+- ✅ Listar restaurantes com paginação
+- ✅ Atualizar um restaurante existente
+- ✅ Deletar um restaurante
+- ✅ Tentar criar restaurante com nome duplicado
+- ✅ Buscar restaurante inexistente
+
 ## 📈 Cobertura de Código (JaCoCo)
 
 ### Configuração
 - **Mínimo de cobertura**: 90% (LINE coverage)
+- **Status atual**: ⚠️ 60% (abaixo do mínimo configurado)
 - **Exclusões**:
   - Application.class
   - Entidades (entity/*)
@@ -168,6 +198,17 @@ mvn verify -Dcucumber.filter.tags="not @wip"
   - Exceções (exception/*)
   - Mappers (mapper/*)
   - Métricas (metrics/*)
+  - Infraestrutura (infrastructure/**)
+
+### Detalhamento por Classe
+| Classe | Linhas Cobertas | Total de Linhas | Cobertura |
+|--------|----------------|-----------------|-----------|
+| KitchenService | 43 | 63 | 68% |
+| RestaurantService | 55 | 75 | 73% |
+| KitchenController | 38 | 38 | 100% |
+| RestaurantController | 38 | 38 | 100% |
+| ProductService | 5 | 76 | 7% |
+| ProductController | 2 | 38 | 5% |
 
 ### Executar relatório de cobertura
 ```bash
@@ -175,6 +216,8 @@ mvn clean verify
 ```
 
 Relatório gerado em: `target/site/jacoco/index.html`
+
+**Ação necessária**: Adicionar mais testes para ProductService e ProductController para atingir 90% de cobertura.
 
 ## 🧬 Testes de Mutação (PIT)
 
@@ -224,6 +267,29 @@ mvn checkstyle:check
 - Usar `@Mock` e `@InjectMocks` para testes unitários puros
 - Verificar chamadas de métodos com `verify()`
 
+## ⚠️ Itens de Ação
+
+### Melhoria da Cobertura de Código
+Para atingir o objetivo de 90% de cobertura, é necessário:
+
+1. **ProductService (7% → 90%)**
+   - Adicionar testes unitários para todos os métodos CRUD
+   - Cobrir cenários de validação e tratamento de exceções
+   - Testar regras de negócio específicas de produtos
+
+2. **ProductController (5% → 90%)**
+   - Criar testes de integração (ProductControllerIT)
+   - Testar endpoints REST com diferentes cenários
+   - Validar responses e status codes
+
+3. **KitchenService (68% → 90%)**
+   - Adicionar testes para cenários de borda
+   - Melhorar cobertura de validações
+
+4. **RestaurantService (73% → 90%)**
+   - Expandir testes de validação
+   - Testar casos de erro adicionais
+
 ## 📚 Referências
 
 - [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/)
@@ -235,7 +301,8 @@ mvn checkstyle:check
 
 ---
 
-**Última atualização**: 2025-10-13
+**Última atualização**: 2025-10-14
 **Versão do Spring Boot**: 3.5.6
 **Versão do Java**: 25
 **Status dos Testes**: ✅ TODOS PASSANDO
+**Cobertura de Código**: ⚠️ 60% (objetivo: 90%)

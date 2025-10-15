@@ -20,7 +20,7 @@ public interface ProductRepository extends JpaRepository<ProductEntity, UUID> {
             FROM ProductEntity p 
             WHERE 
                 (:restaurantId IS NULL OR p.restaurant.id = :restaurantId) 
-                AND (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) 
+                AND (:name IS NULL OR LOWER(CAST(p.name AS string)) LIKE LOWER(CONCAT('%', CAST(:name AS string), '%'))) 
                 AND (:minPrice IS NULL OR p.price >= :minPrice) 
                 AND (:maxPrice IS NULL OR p.price <= :maxPrice) 
                 AND (:active IS NULL OR p.active = :active)
