@@ -190,7 +190,7 @@ mvn verify "-Dcucumber.filter.tags=not @wip"
 
 ### Configuração
 - **Mínimo de cobertura**: 90% (LINE coverage)
-- **Status atual**: ⚠️ 60% (abaixo do mínimo configurado)
+- **Status atual**: ⚠️ 64% (melhorou de 60%, mas ainda abaixo do mínimo configurado)
 - **Exclusões**:
   - Application.class
   - Entidades (entity/*)
@@ -201,14 +201,15 @@ mvn verify "-Dcucumber.filter.tags=not @wip"
   - Infraestrutura (infrastructure/**)
 
 ### Detalhamento por Classe
-| Classe | Linhas Cobertas | Total de Linhas | Cobertura |
-|--------|----------------|-----------------|-----------|
-| KitchenService | 43 | 63 | 68% |
-| RestaurantService | 55 | 75 | 73% |
-| KitchenController | 38 | 38 | 100% |
-| RestaurantController | 38 | 38 | 100% |
-| ProductService | 5 | 76 | 7% |
-| ProductController | 2 | 38 | 5% |
+
+| Classe               | Linhas Cobertas | Total de Linhas | Cobertura | Status             |
+|----------------------|-----------------|-----------------|-----------|--------------------|
+| KitchenService       | 63              | 63              | 100%      | ✅                  |
+| RestaurantService    | 75              | 75              | 100%      | ✅                  |
+| KitchenController    | 38              | 38              | 100%      | ✅                  |
+| RestaurantController | 38              | 38              | 100%      | ✅                  |
+| ProductService       | 0               | 76              | 0%        | ❌ Não implementado |
+| ProductController    | 0               | 38              | 0%        | ❌ Não implementado |
 
 ### Executar relatório de cobertura
 ```bash
@@ -282,13 +283,14 @@ Para atingir o objetivo de 90% de cobertura, é necessário:
    - Testar endpoints REST com diferentes cenários
    - Validar responses e status codes
 
-3. **KitchenService (68% → 90%)**
-   - Adicionar testes para cenários de borda
-   - Melhorar cobertura de validações
+3. **KitchenService (84% → 90%)**
+    - Adicionar testes para cenários de exceção em update() e delete()
+    - Cobrir handlers de DataIntegrityViolationException e DataAccessException
+    - Testar caso de EmptyResultDataAccessException no delete()
 
-4. **RestaurantService (73% → 90%)**
-   - Expandir testes de validação
-   - Testar casos de erro adicionais
+4. **RestaurantService (100% ✅)**
+    - ✅ Cobertura já atingiu 100%
+    - Manter qualidade dos testes existentes
 
 ## 📚 Referências
 

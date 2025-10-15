@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -289,6 +291,62 @@ class KitchenServiceTest {
             assertNotNull(exception);
             verify(kitchenRepository, never()).save(any(KitchenEntity.class));
         }
+
+        @Test
+        @DisplayName("Deve atualizar cozinha com mesmo nome sem verificar duplicata")
+        void deveAtualizarCozinhaComMesmoNomeSemVerificarDuplicata() {
+            // Usar o mesmo nome da cozinha existente
+            KitchenRequest updateRequest = new KitchenRequest("Italiana");
+
+            when(kitchenRepository.findById(kitchenId)).thenReturn(Optional.of(kitchenEntity));
+            when(kitchenRepository.save(any(KitchenEntity.class))).thenReturn(kitchenEntity);
+
+            KitchenEntity result = kitchenService.update(kitchenId, updateRequest);
+
+            assertNotNull(result);
+            assertEquals("Italiana", result.getName());
+            verify(kitchenRepository, times(1)).findById(kitchenId);
+            verify(kitchenRepository, never()).existsByName(anyString()); // Não deve verificar nome duplicado
+            verify(kitchenRepository, times(1)).save(any(KitchenEntity.class));
+        }
+
+        @Test
+        @DisplayName("Deve lançar ResourceAlreadyExistsException quando há violação de integridade")
+        void deveLancarExcecaoQuandoViolacaoIntegridade() {
+            KitchenRequest updateRequest = new KitchenRequest("Italiana Moderna");
+
+            when(kitchenRepository.findById(kitchenId)).thenReturn(Optional.of(kitchenEntity));
+            when(kitchenRepository.existsByName("Italiana Moderna")).thenReturn(false);
+            when(kitchenRepository.save(any(KitchenEntity.class)))
+                    .thenThrow(new DataIntegrityViolationException("Duplicate key"));
+
+            ResourceAlreadyExistsException exception = assertThrows(
+                    ResourceAlreadyExistsException.class,
+                    () -> kitchenService.update(kitchenId, updateRequest)
+            );
+
+            assertNotNull(exception);
+            verify(kitchenRepository, times(1)).save(any(KitchenEntity.class));
+        }
+
+        @Test
+        @DisplayName("Deve lançar BusinessException quando há erro de banco de dados")
+        void deveLancarBusinessExceptionQuandoErroBancoDados() {
+            KitchenRequest updateRequest = new KitchenRequest("Italiana Moderna");
+
+            when(kitchenRepository.findById(kitchenId)).thenReturn(Optional.of(kitchenEntity));
+            when(kitchenRepository.existsByName("Italiana Moderna")).thenReturn(false);
+            when(kitchenRepository.save(any(KitchenEntity.class)))
+                    .thenThrow(new DataAccessException("Database error") {});
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> kitchenService.update(kitchenId, updateRequest)
+            );
+
+            assertNotNull(exception);
+            assertEquals("DATABASE_ERROR", exception.getErrorCode());
+        }
     }
 
     @Nested
@@ -319,6 +377,58 @@ class KitchenServiceTest {
             assertNotNull(exception);
             verify(kitchenRepository, times(1)).existsById(kitchenId);
             verify(kitchenRepository, never()).deleteById(any(UUID.class));
+        }
+
+        @Test
+        @DisplayName("Deve lançar BusinessException quando há violação de integridade referencial")
+        void deveLancarBusinessExceptionQuandoViolacaoIntegridadeReferencial() {
+            when(kitchenRepository.existsById(kitchenId)).thenReturn(true);
+            doThrow(new DataIntegrityViolationException("Referenced by other entities"))
+                    .when(kitchenRepository).deleteById(kitchenId);
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> kitchenService.delete(kitchenId)
+            );
+
+            assertNotNull(exception);
+            assertEquals("DATA_INTEGRITY_VIOLATION", exception.getErrorCode());
+            verify(kitchenRepository, times(1)).existsById(kitchenId);
+            verify(kitchenRepository, times(1)).deleteById(kitchenId);
+        }
+
+        @Test
+        @DisplayName("Deve lançar BusinessException quando há erro de banco de dados")
+        void deveLancarBusinessExceptionQuandoErroBancoDados() {
+            when(kitchenRepository.existsById(kitchenId)).thenReturn(true);
+            doThrow(new DataAccessException("Database error") {})
+                    .when(kitchenRepository).deleteById(kitchenId);
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> kitchenService.delete(kitchenId)
+            );
+
+            assertNotNull(exception);
+            assertEquals("DATABASE_ERROR", exception.getErrorCode());
+            verify(kitchenRepository, times(1)).existsById(kitchenId);
+            verify(kitchenRepository, times(1)).deleteById(kitchenId);
+        }
+
+        @Test
+        @DisplayName("Deve lançar ResourceNotFoundException quando EmptyResultDataAccessException é lançada")
+        void deveLancarResourceNotFoundExceptionQuandoEmptyResultDataAccessException() {
+            UUID id = UUID.randomUUID();
+
+            when(kitchenRepository.existsById(id)).thenReturn(true);
+            doThrow(new EmptyResultDataAccessException(1)).when(kitchenRepository).deleteById(id);
+
+            ResourceNotFoundException exception = assertThrows(
+                    ResourceNotFoundException.class,
+                    () -> kitchenService.delete(id)
+            );
+
+            assertEquals("Resource Kitchen with identifier " + id + " not found", exception.getMessage());
         }
     }
 }
