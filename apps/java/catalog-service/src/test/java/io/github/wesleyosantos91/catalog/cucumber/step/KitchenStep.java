@@ -14,7 +14,6 @@ import io.github.wesleyosantos91.catalog.cucumber.utils.FeatureUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
@@ -31,8 +30,12 @@ import org.springframework.http.ResponseEntity;
  */
 public class KitchenStep {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+
+    private final TestRestTemplate restTemplate;
+
+    public KitchenStep(TestRestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     @LocalServerPort
     private int randomServerPort;
@@ -177,4 +180,3 @@ public class KitchenStep {
         response = restTemplate.getForEntity(baseUrl + "/" + nonExistentId, String.class);
     }
 }
-

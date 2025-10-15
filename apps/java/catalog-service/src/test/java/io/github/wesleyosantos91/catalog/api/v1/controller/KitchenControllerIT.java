@@ -42,9 +42,6 @@ class KitchenControllerIT {
     private TestRestTemplate restTemplate;
 
     @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
     private KitchenRepository kitchenRepository;
 
     @LocalServerPort
@@ -54,6 +51,9 @@ class KitchenControllerIT {
 
     @BeforeEach
     void setUp() {
+        // Limpa o banco antes de cada teste para garantir estado inicial limpo
+        kitchenRepository.deleteAll();
+
         baseUrl = "http://localhost:" + port + "/v1/kitchens";
     }
 

@@ -19,7 +19,7 @@ public interface RestaurantRepository extends JpaRepository<RestaurantEntity, UU
             SELECT r 
             FROM RestaurantEntity r 
             WHERE 
-                (:name IS NULL OR LOWER(r.name) LIKE LOWER(CONCAT('%', :name, '%'))) 
+                (:name IS NULL OR LOWER(CAST(r.name AS string)) LIKE LOWER(CONCAT('%', CAST(:name AS string), '%')))
                 AND (:kitchenId IS NULL OR r.kitchen.id = :kitchenId) 
                 AND (:active IS NULL OR r.active = :active) 
                 AND (:minDeliveryFee IS NULL OR r.deliveryFee >= :minDeliveryFee) 
