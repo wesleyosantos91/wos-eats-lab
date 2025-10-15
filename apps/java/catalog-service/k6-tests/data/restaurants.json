@@ -1,0 +1,22 @@
+[
+  { "name": "Pizza Express", "deliveryFee": 5.50 },
+  { "name": "Burger Palace", "deliveryFee": 3.99 },
+  { "name": "Sushi Zen", "deliveryFee": 8.00 },
+  { "name": "Taco Loco", "deliveryFee": 4.50 },
+  { "name": "Pasta Mamma", "deliveryFee": 6.00 },
+  { "name": "BBQ King", "deliveryFee": 7.50 },
+  { "name": "Curry House", "deliveryFee": 5.00 },
+  { "name": "Pad Thai Corner", "deliveryFee": 6.50 },
+  { "name": "Kebab Station", "deliveryFee": 4.00 },
+  { "name": "Schnitzel Haus", "deliveryFee": 7.00 },
+  { "name": "Tapas Bar", "deliveryFee": 5.75 },
+  { "name": "Korean BBQ", "deliveryFee": 8.50 },
+  { "name": "Ceviche Master", "deliveryFee": 9.00 },
+  { "name": "Borscht Bistro", "deliveryFee": 6.25 },
+  { "name": "Gyros Place", "deliveryFee": 4.75 },
+  { "name": "Ottoman Kitchen", "deliveryFee": 7.25 },
+  { "name": "Fado Restaurant", "deliveryFee": 6.75 },
+  { "name": "Pho Saigon", "deliveryFee": 5.25 },
+  { "name": "Tagine House", "deliveryFee": 8.75 },
+  { "name": "Injera Palace", "deliveryFee": 7.75 }
+]
