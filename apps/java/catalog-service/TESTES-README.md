@@ -3,10 +3,11 @@
 ##   Status Geral dos Testes
 
 ### ✅ Conquistas
-- **112 testes executados**: 100% passando
+- **115 testes executados**: 100% passando
 - **KitchenService**: 100% de cobertura
 - **RestaurantService**: 100% de cobertura
 - **Controllers**: 100% de cobertura (Kitchen e Restaurant)
+- **Contract Tests**: 44 testes (19 Kitchen + 25 Restaurant)
 - **Checkstyle**: 0 violações
 
 ### ⚠️ Áreas de Melhoria
@@ -132,13 +133,17 @@ mvn clean test "-Dskip.it=true"
 ```bash
 mvn clean verify "-Dtest=*ContractIT"
 ```
-✅ **Resultado atual: 19 testes de contrato passando (0 falhas)**
+✅ **Resultado atual: 44 testes de contrato passando (0 falhas)**
+- **KitchenControllerContractIT**: 19 testes
+- **RestaurantControllerContractIT**: 25 testes
 
 ### Executar SOMENTE Integration Tests (Failsafe + BDD)
 ```bash
 mvn clean verify "-Dskip.ut=true"
 ```
-✅ **Resultado atual: 60 testes executados (0 falhas, 60 passando)**
+✅ **Resultado atual: 63 testes executados (0 falhas, 63 passando)**
+- **Contract Tests**: 44 testes (19 Kitchen + 25 Restaurant)
+- **BDD/Cucumber Tests**: 19 testes (cenários de features)
 
 **Status dos testes:**
 - ✅ Todos os testes de integração estão passando
@@ -245,14 +250,49 @@ mvn verify "-Dcucumber.filter.tags=not @wip"
   - Validar headers de resposta corretos
   - Deletar cozinha inexistente (404 Not Found)
 
+**RestaurantControllerContractIT** - 25 testes usando Rest Assured e JSON Schema Validator:
+- ✅ **POST /v1/restaurants** - Criar restaurante (6 testes)
+  - Criar com dados válidos e validar response schema
+  - Validar headers de resposta (Content-Type, Location)
+  - Criar com deliveryFee negativo (400 Bad Request)
+  - Criar com kitchenId nulo (400 Bad Request)
+  - Criar sem body da requisição (400 Bad Request)
+  - Criar com nome vazio (400 Bad Request)
+- ✅ **GET /v1/restaurants/{id}** - Buscar restaurante por ID (4 testes)
+  - Buscar restaurante existente e validar response schema
+  - Validar headers de resposta corretos
+  - Buscar com ID inválido (400 Bad Request)
+  - Buscar restaurante inexistente (404 Not Found)
+- ✅ **GET /v1/restaurants** - Listar restaurantes (5 testes)
+  - Listar com paginação e validar page response schema
+  - Filtrar por nome do restaurante
+  - Filtrar por tipo de cozinha
+  - Filtrar por faixa de taxa de entrega
+  - Validar headers e Content-Type corretos
+- ✅ **PUT /v1/restaurants/{id}** - Atualizar restaurante (4 testes)
+  - Atualizar com dados válidos e validar response schema
+  - Atualizar sem fornecer nome (suporte a atualizações parciais)
+  - Atualizar com deliveryFee negativo (400 Bad Request)
+  - Atualizar restaurante inexistente (404 Not Found)
+- ✅ **DELETE /v1/restaurants/{id}** - Deletar restaurante (4 testes)
+  - Deletar restaurante existente (204 No Content)
+  - Deletar com ID inválido (400 Bad Request)
+  - Deletar restaurante já deletado (404 Not Found)
+  - Deletar restaurante inexistente (404 Not Found)
+- ✅ **Headers e Content-Type** - Validações gerais (2 testes)
+  - Validar headers corretos nas respostas
+  - Validar Content-Type application/json
+
 **Tecnologias utilizadas nos Contract Tests:**
 - **Rest Assured 5.5.6**: Framework para testes de API REST
 - **JSON Schema Validator 5.5.6**: Validação de schemas JSON
 - **Testcontainers**: Ambiente isolado com PostgreSQL
+- **@Import(TestcontainersConfiguration.class)**: Configuração centralizada de testcontainers
 - **Schemas JSON**: Validação estrutural das respostas
   - `kitchen-response-schema.json`: Schema para resposta de cozinha individual
   - `kitchen-page-response-schema.json`: Schema para resposta paginada
-  - `error-response-schema.json`: Schema para respostas de erro
+  - `restaurant-create-response-schema.json`: Schema para resposta de restaurante
+  - `problem-details-error-schema.json`: Schema RFC 7807 para respostas de erro
 
 #### Testes BDD/Cucumber
 **Kitchen Features:**
@@ -618,9 +658,12 @@ mvn checkstyle:check
 
 ---
 
-**Última atualização**: 2025-10-14
+**Última atualização**: 2025-10-15
 **Versão do Spring Boot**: 3.5.6
 **Versão do Java**: 25
-**Status dos Testes**: ✅ TODOS PASSANDO (131/131)
+**Status dos Testes**: ✅ TODOS PASSANDO (115/115)
+- **Unit Tests**: 71 testes
+- **Contract Tests**: 44 testes (19 Kitchen + 25 Restaurant)
+- **BDD/Cucumber Tests**: Inclusos nos Integration Tests
 **Cobertura de Código**: ⚠️ 68% (objetivo: 90%)
 **Testes de Mutação**: ⚠️ 64% (objetivo: 90%)

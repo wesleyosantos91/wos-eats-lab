@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "integer",
+      "minimum": 400,
+      "maximum": 599
+    },
+    "detail": {
+      "type": "string"
+    },
+    "instance": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "path": {
+      "type": "string"
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "error_code": {
+            "type": "string"
+          }
+        },
+        "required": ["field", "message", "error_code"]
+      }
+    },
+    "resource": {
+      "type": "string"
+    },
+    "identifier": {
+      "type": "string"
+    }
+  },
+  "required": ["type", "title", "status", "detail", "instance", "timestamp"],
+  "additionalProperties": true
+}

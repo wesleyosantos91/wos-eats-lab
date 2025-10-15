@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "array",
+      "items": {
+        "$ref": "restaurant-response-schema.json"
+      }
+    },
+    "page": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "totalElements": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "totalPages": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": ["size", "number", "totalElements", "totalPages"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["content", "page"],
+  "additionalProperties": false
+}
