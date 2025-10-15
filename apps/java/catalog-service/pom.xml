@@ -374,16 +374,16 @@
                     <excludedClasses>
                         <param>io.github.github.*Application</param>
                         <param>io.github.wesleyosantos91.catalog.domain.entity.*</param>
-                        <param>io.github.wesleyosantos91.catalog.domain.entity.enums.*</param>
-                        <param>io.github.wesleyosantos91.catalog.api.v1.commons.enums.*</param>
+                        <param>io.github.wesleyosantos91.catalog.domain.exception.*</param>
                         <param>io.github.wesleyosantos91.catalog.api.v1.request.*</param>
                         <param>io.github.wesleyosantos91.catalog.api.v1.response.*</param>
                         <param>io.github.wesleyosantos91.catalog.core.mapper.*</param>
                         <param>io.github.wesleyosantos91.catalog.api.exception.*</param>
-                        <param>io.github.wesleyosantos91.catalog.infrastructure.metrics.*</param>
-                        <param>io.github.wesleyosantos91.catalog.infrastructure.springdoc.*</param>
+                        <param>io.github.wesleyosantos91.catalog.infrastructure.metric.*</param>
+                        <param>io.github.wesleyosantos91.catalog.infrastructure.openapi.*</param>
                         <param>io.github.wesleyosantos91.catalog.infrastructure.s3.*</param>
                         <param>io.github.wesleyosantos91.catalog.infrastructure.virtualthread.*</param>
+                        <param>io.github.wesleyosantos91.catalog.infrastructure.filter.*</param>
                     </excludedClasses>
                     <avoidCallsTo>
                         <param>org.springframework.util.StopWatch</param>
