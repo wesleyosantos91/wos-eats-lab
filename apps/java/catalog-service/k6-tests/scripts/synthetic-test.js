@@ -1,18 +1,14 @@
-import { 
-  getAllKitchens, 
-  getAllRestaurants, 
-  createKitchen, 
-  createRestaurant, 
-  getKitchen, 
-  getRestaurant,
-  updateKitchen,
-  updateRestaurant,
-  deleteKitchen,
-  deleteRestaurant,
-  PERFORMANCE_THRESHOLDS
+import {sleep} from 'k6';
+import {
+    createKitchen,
+    createRestaurant,
+    getAllKitchens,
+    getAllRestaurants,
+    getKitchen,
+    getRestaurant,
+    PERFORMANCE_THRESHOLDS,
+    updateRestaurant
 } from '../utils/api-utils.js';
-
-import { sleep } from 'k6';
 
 export let options = {
   stages: [

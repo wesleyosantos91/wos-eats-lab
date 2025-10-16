@@ -15,14 +15,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.wesleyosantos91.catalog.api.v1.request.KitchenQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.KitchenRequest;
 import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
+import io.github.wesleyosantos91.catalog.domain.model.KitchenModel;
+import io.github.wesleyosantos91.catalog.core.mapper.KitchenMapper;
 import io.github.wesleyosantos91.catalog.domain.service.KitchenService;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -74,7 +76,7 @@ class KitchenControllerTest {
         @Test
         @DisplayName("Deve criar uma cozinha com sucesso e retornar 201")
         void devecriarCozinhaComSucesso() throws Exception {
-            when(kitchenService.create(any(KitchenRequest.class))).thenReturn(kitchenEntity);
+            when(kitchenService.create(any(KitchenModel.class))).thenReturn(KitchenMapper.MAPPER.toModel(kitchenEntity));
 
             mockMvc.perform(post("/v1/kitchens")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -83,13 +85,13 @@ class KitchenControllerTest {
                     .andExpect(jsonPath("$.id").value(kitchenId.toString()))
                     .andExpect(jsonPath("$.name").value("Italiana"));
 
-            verify(kitchenService, times(1)).create(any(KitchenRequest.class));
+            verify(kitchenService, times(1)).create(any(KitchenModel.class));
         }
 
         @Test
         @DisplayName("Deve retornar 409 quando tentar criar cozinha com nome duplicado")
         void deveRetornar409QuandoNomeDuplicado() throws Exception {
-            when(kitchenService.create(any(KitchenRequest.class)))
+            when(kitchenService.create(any(KitchenModel.class)))
                     .thenThrow(new ResourceAlreadyExistsException("Kitchen", "name", "Italiana"));
 
             mockMvc.perform(post("/v1/kitchens")
@@ -97,7 +99,7 @@ class KitchenControllerTest {
                             .content(objectMapper.writeValueAsString(kitchenRequest)))
                     .andExpect(status().isConflict());
 
-            verify(kitchenService, times(1)).create(any(KitchenRequest.class));
+            verify(kitchenService, times(1)).create(any(KitchenModel.class));
         }
     }
 
@@ -108,7 +110,7 @@ class KitchenControllerTest {
         @Test
         @DisplayName("Deve retornar uma cozinha pelo ID com sucesso")
         void deveRetornarCozinhaPorId() throws Exception {
-            when(kitchenService.findById(kitchenId)).thenReturn(kitchenEntity);
+            when(kitchenService.findById(kitchenId)).thenReturn(KitchenMapper.MAPPER.toModel(kitchenEntity));
 
             mockMvc.perform(get("/v1/kitchens/{id}", kitchenId))
                     .andExpect(status().isOk())
@@ -141,9 +143,9 @@ class KitchenControllerTest {
             Pageable pageable = PageRequest.of(0, 10);
             var kitchens = new ArrayList<KitchenEntity>();
             kitchens.add(kitchenEntity);
-            var page = new PageImpl<>(kitchens, pageable, 1);
+            var page = new PageImpl<>(kitchens.stream().map(KitchenMapper.MAPPER::toModel).toList(), pageable, kitchens.size());
 
-            when(kitchenService.search(any(KitchenQueryRequest.class), any(Pageable.class)))
+            when(kitchenService.search(any(KitchenModel.class), any(Pageable.class)))
                     .thenReturn(page);
 
             mockMvc.perform(get("/v1/kitchens")
@@ -154,7 +156,7 @@ class KitchenControllerTest {
                     .andExpect(jsonPath("$.content[0].id").value(kitchenId.toString()))
                     .andExpect(jsonPath("$.content[0].name").value("Italiana"));
 
-            verify(kitchenService, times(1)).search(any(KitchenQueryRequest.class), any(Pageable.class));
+            verify(kitchenService, times(1)).search(any(KitchenModel.class), any(Pageable.class));
         }
 
         @Test
@@ -163,9 +165,9 @@ class KitchenControllerTest {
             Pageable pageable = PageRequest.of(0, 10);
             var kitchens = new ArrayList<KitchenEntity>();
             kitchens.add(kitchenEntity);
-            var page = new PageImpl<>(kitchens, pageable, 1);
+            var page = new PageImpl<>(kitchens.stream().map(KitchenMapper.MAPPER::toModel).toList(), pageable, kitchens.size());
 
-            when(kitchenService.search(any(KitchenQueryRequest.class), any(Pageable.class)))
+            when(kitchenService.search(any(KitchenModel.class), any(Pageable.class)))
                     .thenReturn(page);
 
             mockMvc.perform(get("/v1/kitchens")
@@ -175,7 +177,7 @@ class KitchenControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray());
 
-            verify(kitchenService, times(1)).search(any(KitchenQueryRequest.class), any(Pageable.class));
+            verify(kitchenService, times(1)).search(any(KitchenModel.class), any(Pageable.class));
         }
     }
 
@@ -189,8 +191,8 @@ class KitchenControllerTest {
             KitchenRequest updateRequest = new KitchenRequest("Italiana Moderna");
             kitchenEntity.setName("Italiana Moderna");
 
-            when(kitchenService.update(eq(kitchenId), any(KitchenRequest.class)))
-                    .thenReturn(kitchenEntity);
+            when(kitchenService.update(eq(kitchenId), any(KitchenModel.class)))
+                    .thenReturn(KitchenMapper.MAPPER.toModel(kitchenEntity));
 
             mockMvc.perform(put("/v1/kitchens/{id}", kitchenId)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -199,13 +201,13 @@ class KitchenControllerTest {
                     .andExpect(jsonPath("$.id").value(kitchenId.toString()))
                     .andExpect(jsonPath("$.name").value("Italiana Moderna"));
 
-            verify(kitchenService, times(1)).update(eq(kitchenId), any(KitchenRequest.class));
+            verify(kitchenService, times(1)).update(eq(kitchenId), any(KitchenModel.class));
         }
 
         @Test
         @DisplayName("Deve retornar 404 ao atualizar cozinha inexistente")
         void deveRetornar404AoAtualizarCozinhaInexistente() throws Exception {
-            when(kitchenService.update(eq(kitchenId), any(KitchenRequest.class)))
+            when(kitchenService.update(eq(kitchenId), any(KitchenModel.class)))
                     .thenThrow(new ResourceNotFoundException("Kitchen", kitchenId.toString()));
 
             mockMvc.perform(put("/v1/kitchens/{id}", kitchenId)
@@ -213,7 +215,7 @@ class KitchenControllerTest {
                             .content(objectMapper.writeValueAsString(kitchenRequest)))
                     .andExpect(status().isNotFound());
 
-            verify(kitchenService, times(1)).update(eq(kitchenId), any(KitchenRequest.class));
+            verify(kitchenService, times(1)).update(eq(kitchenId), any(KitchenModel.class));
         }
     }
 
@@ -245,4 +247,6 @@ class KitchenControllerTest {
         }
     }
 }
+
+
 

@@ -208,16 +208,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         LOG.warn(ERROR_LOG_MESSAGE, ex.getClass().getSimpleName(), ex.getMessage());
 
-        final String error = String.format("Parameter '%s' should be of type '%s'",
-                ex.getName(), Objects.requireNonNull(ex.getRequiredType()).getSimpleName());
+        final String error;
+        final String title;
+        
+        if (Objects.requireNonNull(ex.getRequiredType()).equals(java.util.UUID.class)) {
+            error = String.format("Formato inválido para o parâmetro '%s': '%s'. UUID esperado no formato: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", 
+                    ex.getName(), ex.getValue());
+            title = "Invalid UUID Format";
+        } else {
+            error = String.format("Parameter '%s' should be of type '%s'",
+                    ex.getName(), ex.getRequiredType().getSimpleName());
+            title = "Type Mismatch";
+        }
 
         final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST, error);
-        problemDetail.setTitle("Type Mismatch");
+        problemDetail.setTitle(title);
         problemDetail.setProperty(TIMESTAMP, Instant.now());
         problemDetail.setProperty("parameter", ex.getName());
         problemDetail.setProperty("expectedType",
                 Objects.requireNonNull(ex.getRequiredType()).getSimpleName());
+        problemDetail.setProperty("providedValue", ex.getValue());
 
         setObservationError(ex, request);
 

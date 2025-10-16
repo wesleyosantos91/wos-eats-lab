@@ -108,7 +108,7 @@ class RestaurantControllerContractIT {
                     .body(matchesJsonSchemaInClasspath("schemas/restaurant-create-response-schema.json"))
                     .body("id", notNullValue())
                     .body("name", equalTo("Restaurante Italiano"))
-                    .body("kitchen_id", equalTo(kitchenId))
+                    .body("kitchen.id", equalTo(kitchenId))
                     .body("active", equalTo(true))
                     .body("delivery_fee", equalTo(10.50f));
         }
@@ -245,8 +245,8 @@ class RestaurantControllerContractIT {
                     .body(matchesJsonSchemaInClasspath("schemas/restaurant-response-schema.json"))
                     .body("id", equalTo(restaurantId))
                     .body("name", equalTo("China in Box"))
-                    .body("kitchen_id", equalTo(kitchenId))
-                    .body("kitchen_name", equalTo("Chinesa"))
+                    .body("kitchen.id", equalTo(kitchenId))
+                    .body("kitchen.name", equalTo("Chinesa"))
                     .body("active", equalTo(true))
                     .body("delivery_fee", equalTo(8.50f));
         }

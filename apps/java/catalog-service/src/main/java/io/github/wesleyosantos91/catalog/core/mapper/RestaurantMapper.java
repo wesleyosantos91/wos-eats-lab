@@ -6,8 +6,8 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.RestaurantResponse;
-import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
 import io.github.wesleyosantos91.catalog.domain.entity.RestaurantEntity;
+import io.github.wesleyosantos91.catalog.domain.model.RestaurantModel;
 import java.util.ArrayList;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -20,39 +20,46 @@ import org.springframework.data.domain.PageImpl;
 
 @Mapper(nullValuePropertyMappingStrategy = IGNORE,
         nullValueCheckStrategy = ALWAYS,
-        unmappedTargetPolicy = ReportingPolicy.IGNORE)
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        uses = {KitchenMapper.class}
+)
 public interface RestaurantMapper {
 
     RestaurantMapper MAPPER = Mappers.getMapper(RestaurantMapper.class);
 
-    RestaurantEntity toEntity(RestaurantQueryRequest query);
+    @Mapping(target = "kitchen.id", source = "request.kitchenId")
+    RestaurantModel toModel(RestaurantRequest request);
 
-    @Mapping(target = "kitchen", source = "kitchenId")
-    RestaurantEntity toEntity(RestaurantRequest request);
+    RestaurantModel toModel(RestaurantEntity entity);
 
-    @Mapping(target = "kitchen", source = "kitchenId")
-    RestaurantEntity toEntity(RestaurantRequest request, @MappingTarget RestaurantEntity entity);
+    @Mapping(target = "kitchen.id", source = "request.kitchenId")
+    RestaurantModel toQueryModel(RestaurantQueryRequest request);
 
-    @Mapping(target = "kitchenId", source = "kitchen.id")
-    @Mapping(target = "kitchenName", source = "kitchen.name")
-    RestaurantResponse toResponse(RestaurantEntity entity);
+    RestaurantEntity toEntity(RestaurantModel model);
 
-    default KitchenEntity mapKitchenId(java.util.UUID kitchenId) {
-        if (kitchenId == null) {
-            return null;
-        }
-        final KitchenEntity kitchen = new KitchenEntity();
-        kitchen.setId(kitchenId);
-        return kitchen;
-    }
+    RestaurantEntity toEntity(RestaurantModel model, @MappingTarget RestaurantEntity entity);
 
-    default List<RestaurantResponse> toListResponse(List<RestaurantEntity> entities) {
-        final List<RestaurantResponse> list = new ArrayList<>();
-        entities.forEach(e -> list.add(toResponse(e)));
+
+    RestaurantResponse toResponse(RestaurantModel model);
+
+    default List<RestaurantModel> toListDomain(List<RestaurantEntity> entities) {
+        final List<RestaurantModel> list = new ArrayList<>();
+        entities.forEach(e -> list.add(toModel(e)));
         return list;
     }
 
-    default Page<RestaurantResponse> toPageResponse(Page<RestaurantEntity> pages) {
+    default Page<RestaurantModel> toPageDomain(Page<RestaurantEntity> pages) {
+        final List<RestaurantModel> list = toListDomain(pages.getContent());
+        return new PageImpl<>(list, pages.getPageable(), pages.getTotalElements());
+    }
+
+    default List<RestaurantResponse> toListResponse(List<RestaurantModel> models) {
+        final List<RestaurantResponse> list = new ArrayList<>();
+        models.forEach(m -> list.add(toResponse(m)));
+        return list;
+    }
+
+    default Page<RestaurantResponse> toPageResponse(Page<RestaurantModel> pages) {
         final List<RestaurantResponse> list = toListResponse(pages.getContent());
         return new PageImpl<>(list, pages.getPageable(), pages.getTotalElements());
     }

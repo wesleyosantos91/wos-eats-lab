@@ -9,12 +9,19 @@
     "name": {
       "type": "string"
     },
-    "kitchen_id": {
-      "type": "string",
-      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-    },
-    "kitchen_name": {
-      "type": "string"
+    "kitchen": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name"],
+      "additionalProperties": false
     },
     "active": {
       "type": "boolean"
@@ -23,6 +30,6 @@
       "type": "number"
     }
   },
-  "required": ["id", "name", "kitchen_id", "active", "delivery_fee"],
+  "required": ["id", "name", "kitchen", "active", "delivery_fee"],
   "additionalProperties": false
 }

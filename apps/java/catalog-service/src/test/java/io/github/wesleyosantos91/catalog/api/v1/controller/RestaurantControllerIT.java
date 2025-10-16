@@ -127,7 +127,7 @@ class RestaurantControllerIT {
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             assertNotNull(response.getBody());
             assertEquals("Restaurante Italiano", response.getBody().name());
-            assertEquals(kitchenId, response.getBody().kitchenId());
+            assertEquals(kitchenId, response.getBody().kitchen().id());
             assertEquals(true, response.getBody().active());
             assertEquals(new BigDecimal("10.00"), response.getBody().deliveryFee());
             assertNotNull(response.getBody().id());
@@ -231,8 +231,8 @@ class RestaurantControllerIT {
             assertNotNull(response.getBody());
             assertEquals(restaurantId, response.getBody().id());
             assertEquals("Restaurante Busca", response.getBody().name());
-            assertEquals(kitchenId, response.getBody().kitchenId());
-            assertEquals("Italiana", response.getBody().kitchenName());
+            assertEquals(kitchenId, response.getBody().kitchen().id());
+            assertEquals("Italiana", response.getBody().kitchen().name());
             assertEquals(true, response.getBody().active());
             assertEquals(new BigDecimal("8.50"), response.getBody().deliveryFee());
         }

@@ -10,13 +10,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantQueryRequest;
-import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantRequest;
 import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
 import io.github.wesleyosantos91.catalog.domain.entity.RestaurantEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.BusinessException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
+import io.github.wesleyosantos91.catalog.domain.model.RestaurantModel;
 import io.github.wesleyosantos91.catalog.domain.repository.KitchenRepository;
 import io.github.wesleyosantos91.catalog.domain.repository.RestaurantRepository;
 import java.math.BigDecimal;
@@ -58,7 +57,7 @@ class RestaurantServiceTest {
 
     private RestaurantEntity restaurantEntity;
     private KitchenEntity kitchenEntity;
-    private RestaurantRequest restaurantRequest;
+    private RestaurantModel restaurantModel;
     private UUID restaurantId;
     private UUID kitchenId;
 
@@ -78,7 +77,7 @@ class RestaurantServiceTest {
         restaurantEntity.setActive(true);
         restaurantEntity.setDeliveryFee(new BigDecimal("10.00"));
 
-        restaurantRequest = new RestaurantRequest(
+        restaurantModel = new RestaurantModel(
                 "Restaurante Teste",
                 kitchenId,
                 true,
@@ -97,11 +96,11 @@ class RestaurantServiceTest {
             when(restaurantRepository.existsByName("Restaurante Teste")).thenReturn(false);
             when(restaurantRepository.save(any(RestaurantEntity.class))).thenReturn(restaurantEntity);
 
-            RestaurantEntity result = restaurantService.create(restaurantRequest);
+            RestaurantModel result = restaurantService.create(restaurantModel);
 
             assertNotNull(result);
-            assertEquals("Restaurante Teste", result.getName());
-            assertEquals(kitchenId, result.getKitchen().getId());
+            assertEquals("Restaurante Teste", result.name());
+            assertEquals(kitchenId, result.kitchen().id());
             verify(kitchenRepository, times(1)).existsById(kitchenId);
             verify(restaurantRepository, times(1)).existsByName("Restaurante Teste");
             verify(restaurantRepository, times(1)).save(any(RestaurantEntity.class));
@@ -114,7 +113,7 @@ class RestaurantServiceTest {
 
             ResourceNotFoundException exception = assertThrows(
                     ResourceNotFoundException.class,
-                    () -> restaurantService.create(restaurantRequest)
+                    () -> restaurantService.create(restaurantModel)
             );
 
             assertNotNull(exception);
@@ -131,7 +130,7 @@ class RestaurantServiceTest {
 
             ResourceAlreadyExistsException exception = assertThrows(
                     ResourceAlreadyExistsException.class,
-                    () -> restaurantService.create(restaurantRequest)
+                    () -> restaurantService.create(restaurantModel)
             );
 
             assertNotNull(exception);
@@ -150,7 +149,7 @@ class RestaurantServiceTest {
 
             ResourceAlreadyExistsException exception = assertThrows(
                     ResourceAlreadyExistsException.class,
-                    () -> restaurantService.create(restaurantRequest)
+                    () -> restaurantService.create(restaurantModel)
             );
 
             assertNotNull(exception);
@@ -167,7 +166,7 @@ class RestaurantServiceTest {
 
             BusinessException exception = assertThrows(
                     BusinessException.class,
-                    () -> restaurantService.create(restaurantRequest)
+                    () -> restaurantService.create(restaurantModel)
             );
 
             assertNotNull(exception);
@@ -184,11 +183,11 @@ class RestaurantServiceTest {
         void deveRetornarRestauranteQuandoIdExiste() {
             when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurantEntity));
 
-            RestaurantEntity result = restaurantService.findById(restaurantId);
+            RestaurantModel result = restaurantService.findById(restaurantId);
 
             assertNotNull(result);
-            assertEquals(restaurantId, result.getId());
-            assertEquals("Restaurante Teste", result.getName());
+            assertEquals(restaurantId, result.id());
+            assertEquals("Restaurante Teste", result.name());
             verify(restaurantRepository, times(1)).findById(restaurantId);
         }
 
@@ -230,13 +229,7 @@ class RestaurantServiceTest {
         @DisplayName("Deve retornar página de restaurantes")
         void deveRetornarPaginaDeRestaurantes() {
             Pageable pageable = PageRequest.of(0, 10);
-            RestaurantQueryRequest queryRequest = new RestaurantQueryRequest(
-                    "Restaurante Teste",
-                    kitchenId,
-                    true,
-                    new BigDecimal("5.00"),
-                    new BigDecimal("15.00")
-            );
+            RestaurantModel queryRequest = new RestaurantModel("Restaurante Teste", kitchenId, true, new BigDecimal("5.00"));
             var restaurants = new ArrayList<RestaurantEntity>();
             restaurants.add(restaurantEntity);
             Page<RestaurantEntity> page = new PageImpl<>(restaurants, pageable, 1);
@@ -245,22 +238,22 @@ class RestaurantServiceTest {
                     "Restaurante Teste",
                     kitchenId,
                     true,
-                    new BigDecimal("5.00"),
-                    new BigDecimal("15.00"),
+                    null,
+                    null,
                     pageable
             )).thenReturn(page);
 
-            Page<RestaurantEntity> result = restaurantService.search(queryRequest, pageable);
+            Page<RestaurantModel> result = restaurantService.search(queryRequest, pageable);
 
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
-            assertEquals("Restaurante Teste", result.getContent().get(0).getName());
+            assertEquals("Restaurante Teste", result.getContent().get(0).name());
             verify(restaurantRepository, times(1)).findByFilters(
                     "Restaurante Teste",
                     kitchenId,
                     true,
-                    new BigDecimal("5.00"),
-                    new BigDecimal("15.00"),
+                    null,
+                    null,
                     pageable
             );
         }
@@ -269,13 +262,7 @@ class RestaurantServiceTest {
         @DisplayName("Deve retornar página vazia quando nenhum restaurante encontrado")
         void deveRetornarPaginaVaziaQuandoNenhumRestauranteEncontrado() {
             Pageable pageable = PageRequest.of(0, 10);
-            RestaurantQueryRequest queryRequest = new RestaurantQueryRequest(
-                    "Inexistente",
-                    null,
-                    null,
-                    null,
-                    null
-            );
+            RestaurantModel queryRequest = new RestaurantModel("Inexistente", null, null, null);
             Page<RestaurantEntity> emptyPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
 
             when(restaurantRepository.findByFilters(
@@ -287,7 +274,7 @@ class RestaurantServiceTest {
                     pageable
             )).thenReturn(emptyPage);
 
-            Page<RestaurantEntity> result = restaurantService.search(queryRequest, pageable);
+            Page<RestaurantModel> result = restaurantService.search(queryRequest, pageable);
 
             assertNotNull(result);
             assertEquals(0, result.getTotalElements());
@@ -305,13 +292,7 @@ class RestaurantServiceTest {
         @DisplayName("Deve lançar BusinessException quando há erro de banco de dados")
         void deveLancarBusinessExceptionQuandoErroBancoDados() {
             Pageable pageable = PageRequest.of(0, 10);
-            RestaurantQueryRequest queryRequest = new RestaurantQueryRequest(
-                    "Restaurante Teste",
-                    null,
-                    null,
-                    null,
-                    null
-            );
+            RestaurantModel queryRequest = new RestaurantModel("Restaurante Teste", null, null, null);
 
             when(restaurantRepository.findByFilters(
                     any(),
@@ -339,7 +320,7 @@ class RestaurantServiceTest {
         @Test
         @DisplayName("Deve atualizar um restaurante com sucesso")
         void deveAtualizarRestauranteComSucesso() {
-            RestaurantRequest updateRequest = new RestaurantRequest(
+            RestaurantModel updateRequest = new RestaurantModel(
                     "Restaurante Atualizado",
                     kitchenId,
                     true,
@@ -356,10 +337,10 @@ class RestaurantServiceTest {
             when(restaurantRepository.existsByName("Restaurante Atualizado")).thenReturn(false);
             when(restaurantRepository.save(any(RestaurantEntity.class))).thenReturn(updatedEntity);
 
-            RestaurantEntity result = restaurantService.update(restaurantId, updateRequest);
+            RestaurantModel result = restaurantService.update(restaurantId, updateRequest);
 
             assertNotNull(result);
-            assertEquals("Restaurante Atualizado", result.getName());
+            assertEquals("Restaurante Atualizado", result.name());
             verify(restaurantRepository, times(1)).findById(restaurantId);
             verify(restaurantRepository, times(1)).save(any(RestaurantEntity.class));
         }
@@ -367,7 +348,7 @@ class RestaurantServiceTest {
         @Test
         @DisplayName("Deve atualizar restaurante mantendo mesmo nome")
         void deveAtualizarRestauranteManvendoMesmoNome() {
-            RestaurantRequest updateRequest = new RestaurantRequest(
+            RestaurantModel updateRequest = new RestaurantModel(
                     "Restaurante Teste", // mesmo nome
                     kitchenId,
                     false,
@@ -383,10 +364,10 @@ class RestaurantServiceTest {
             when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurantEntity));
             when(restaurantRepository.save(any(RestaurantEntity.class))).thenReturn(updatedEntity);
 
-            RestaurantEntity result = restaurantService.update(restaurantId, updateRequest);
+            RestaurantModel result = restaurantService.update(restaurantId, updateRequest);
 
             assertNotNull(result);
-            assertEquals("Restaurante Teste", result.getName());
+            assertEquals("Restaurante Teste", result.name());
             verify(restaurantRepository, times(1)).findById(restaurantId);
             verify(restaurantRepository, never()).existsByName(anyString());
             verify(restaurantRepository, times(1)).save(any(RestaurantEntity.class));
@@ -396,7 +377,7 @@ class RestaurantServiceTest {
         @DisplayName("Deve atualizar restaurante com nova cozinha")
         void deveAtualizarRestauranteComNovaCozinha() {
             UUID newKitchenId = UUID.randomUUID();
-            RestaurantRequest updateRequest = new RestaurantRequest(
+            RestaurantModel updateRequest = new RestaurantModel(
                     "Restaurante Teste",
                     newKitchenId,
                     true,
@@ -407,7 +388,7 @@ class RestaurantServiceTest {
             when(kitchenRepository.existsById(newKitchenId)).thenReturn(true);
             when(restaurantRepository.save(any(RestaurantEntity.class))).thenReturn(restaurantEntity);
 
-            RestaurantEntity result = restaurantService.update(restaurantId, updateRequest);
+            RestaurantModel result = restaurantService.update(restaurantId, updateRequest);
 
             assertNotNull(result);
             verify(kitchenRepository, times(1)).existsById(newKitchenId);
@@ -422,7 +403,7 @@ class RestaurantServiceTest {
 
             ResourceNotFoundException exception = assertThrows(
                     ResourceNotFoundException.class,
-                    () -> restaurantService.update(restaurantId, restaurantRequest)
+                    () -> restaurantService.update(restaurantId, restaurantModel)
             );
 
             assertNotNull(exception);
@@ -434,7 +415,7 @@ class RestaurantServiceTest {
         @DisplayName("Deve lançar ResourceNotFoundException quando nova cozinha não existe")
         void deveLancarExcecaoQuandoNovaCozinhaNaoExiste() {
             UUID newKitchenId = UUID.randomUUID();
-            RestaurantRequest updateRequest = new RestaurantRequest(
+            RestaurantModel updateRequest = new RestaurantModel(
                     "Restaurante Teste",
                     newKitchenId,
                     true,
@@ -457,7 +438,7 @@ class RestaurantServiceTest {
         @Test
         @DisplayName("Deve lançar ResourceAlreadyExistsException quando novo nome já existe")
         void deveLancarExcecaoQuandoNovoNomeJaExiste() {
-            RestaurantRequest updateRequest = new RestaurantRequest(
+            RestaurantModel updateRequest = new RestaurantModel(
                     "Outro Restaurante",
                     kitchenId,
                     true,
@@ -479,7 +460,7 @@ class RestaurantServiceTest {
         @Test
         @DisplayName("Deve lançar ResourceAlreadyExistsException quando há violação de integridade")
         void deveLancarExcecaoQuandoViolacaoIntegridade() {
-            RestaurantRequest updateRequest = new RestaurantRequest(
+            RestaurantModel updateRequest = new RestaurantModel(
                     "Restaurante Atualizado",
                     kitchenId,
                     true,
@@ -509,7 +490,7 @@ class RestaurantServiceTest {
 
             BusinessException exception = assertThrows(
                     BusinessException.class,
-                    () -> restaurantService.update(restaurantId, restaurantRequest)
+                    () -> restaurantService.update(restaurantId, restaurantModel)
             );
 
             assertNotNull(exception);
@@ -597,4 +578,8 @@ class RestaurantServiceTest {
         }
     }
 }
+
+
+
+
 

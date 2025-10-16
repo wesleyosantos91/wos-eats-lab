@@ -7,10 +7,9 @@ import io.github.wesleyosantos91.catalog.api.v1.request.ProductQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.ProductRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.ProductResponse;
 import io.github.wesleyosantos91.catalog.domain.entity.ProductEntity;
-import io.github.wesleyosantos91.catalog.domain.entity.RestaurantEntity;
+import io.github.wesleyosantos91.catalog.domain.model.ProductModel;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -21,39 +20,47 @@ import org.springframework.data.domain.PageImpl;
 
 @Mapper(nullValuePropertyMappingStrategy = IGNORE,
         nullValueCheckStrategy = ALWAYS,
-        unmappedTargetPolicy = ReportingPolicy.IGNORE)
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        uses = {RestaurantMapper.class}
+)
 public interface ProductMapper {
 
     ProductMapper MAPPER = Mappers.getMapper(ProductMapper.class);
 
-    ProductEntity toEntity(ProductQueryRequest query);
+    @Mapping(target = "restaurant.id", source = "request.restaurantId")
+    ProductModel toModel(ProductRequest request);
 
-    @Mapping(target = "restaurant", source = "restaurantId")
-    ProductEntity toEntity(ProductRequest request);
+    ProductModel toModel(ProductEntity entity);
 
-    @Mapping(target = "restaurant", source = "restaurantId")
-    ProductEntity toEntity(ProductRequest request, @MappingTarget ProductEntity entity);
+    @Mapping(target = "restaurant.id", source = "request.restaurantId")
+    ProductModel toQueryModel(ProductQueryRequest request);
 
-    @Mapping(target = "restaurantId", source = "restaurant.id")
-    ProductResponse toResponse(ProductEntity entity);
+    ProductEntity toEntity(ProductModel model);
 
-    default RestaurantEntity mapRestaurantId(UUID restaurantId) {
-        if (restaurantId == null) {
-            return null;
-        }
-        final RestaurantEntity restaurant = new RestaurantEntity();
-        restaurant.setId(restaurantId);
-        return restaurant;
-    }
+    ProductEntity toEntity(ProductModel model, @MappingTarget ProductEntity entity);
 
-    default List<ProductResponse> toListResponse(List<ProductEntity> entities) {
-        final List<ProductResponse> list = new ArrayList<>();
-        entities.forEach(e -> list.add(toResponse(e)));
+    ProductResponse toResponse(ProductModel model);
+
+    default List<ProductModel> toListDomain(List<ProductEntity> entities) {
+        final List<ProductModel> list = new ArrayList<>();
+        entities.forEach(e -> list.add(toModel(e)));
         return list;
     }
 
-    default Page<ProductResponse> toPageResponse(Page<ProductEntity> pages) {
+    default Page<ProductModel> toPageDomain(Page<ProductEntity> pages) {
+        final List<ProductModel> list = toListDomain(pages.getContent());
+        return new PageImpl<>(list, pages.getPageable(), pages.getTotalElements());
+    }
+
+    default List<ProductResponse> toListResponse(List<ProductModel> models) {
+        final List<ProductResponse> list = new ArrayList<>();
+        models.forEach(m -> list.add(toResponse(m)));
+        return list;
+    }
+
+    default Page<ProductResponse> toPageResponse(Page<ProductModel> pages) {
         final List<ProductResponse> list = toListResponse(pages.getContent());
         return new PageImpl<>(list, pages.getPageable(), pages.getTotalElements());
     }
 }
+

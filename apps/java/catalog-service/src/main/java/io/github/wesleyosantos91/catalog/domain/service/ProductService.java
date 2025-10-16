@@ -1,12 +1,11 @@
 package io.github.wesleyosantos91.catalog.domain.service;
 
-import io.github.wesleyosantos91.catalog.api.v1.request.ProductQueryRequest;
-import io.github.wesleyosantos91.catalog.api.v1.request.ProductRequest;
 import io.github.wesleyosantos91.catalog.core.mapper.ProductMapper;
 import io.github.wesleyosantos91.catalog.domain.entity.ProductEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.BusinessException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
+import io.github.wesleyosantos91.catalog.domain.model.ProductModel;
 import io.github.wesleyosantos91.catalog.domain.repository.ProductRepository;
 import io.github.wesleyosantos91.catalog.domain.repository.RestaurantRepository;
 import io.micrometer.core.annotation.Counted;
@@ -43,36 +42,36 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductEntity create(ProductRequest request) {
-        LOGGER.info("Creating new product with name: {} for restaurant: {}", request.name(), request.restaurantId());
+    public ProductModel create(ProductModel model) {
+        LOGGER.info("Creating new product with name: {} for restaurant: {}", model.name(), model.restaurantId());
 
         try {
-            if (!restaurantRepository.existsById(request.restaurantId())) {
-                LOGGER.warn("Attempt to create product for non-existing restaurant: {}", request.restaurantId());
-                throw new ResourceNotFoundException("Restaurant", request.restaurantId().toString());
+            if (!restaurantRepository.existsById(model.restaurantId())) {
+                LOGGER.warn("Attempt to create product for non-existing restaurant: {}", model.restaurantId());
+                throw new ResourceNotFoundException("Restaurant", model.restaurantId().toString());
             }
 
-            if (repository.existsByNameAndRestaurantId(request.name(), request.restaurantId())) {
-                LOGGER.warn("Attempt to create product with existing name: {} for restaurant: {}", request.name(), request.restaurantId());
-                throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, request.name());
+            if (repository.existsByNameAndRestaurantId(model.name(), model.restaurantId())) {
+                LOGGER.warn("Attempt to create product with existing name: {} for restaurant: {}", model.name(), model.restaurantId());
+                throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
             }
 
-            final ProductEntity productEntity = ProductMapper.MAPPER.toEntity(request);
+            final ProductEntity productEntity = ProductMapper.MAPPER.toEntity(model);
             final ProductEntity savedEntity = repository.save(productEntity);
 
             LOGGER.info("Product created successfully with id: {}", savedEntity.getId());
-            return savedEntity;
+            return ProductMapper.MAPPER.toModel(savedEntity);
 
         } catch (DataIntegrityViolationException _) {
-            throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, request.name());
+            throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
 
         } catch (DataAccessException ex) {
-            throw new BusinessException("Database error while creating product. name=" + request.name(), ex, DATABASE_ERROR);
+            throw new BusinessException("Database error while creating product. name=" + model.name(), ex, DATABASE_ERROR);
         }
     }
 
     @Transactional(readOnly = true)
-    public ProductEntity findById(UUID id) {
+    public ProductModel findById(UUID id) {
         LOGGER.debug("Searching for product with id: {}", id);
 
         try {
@@ -85,7 +84,7 @@ public class ProductService {
 
             final ProductEntity product = productOpt.get();
             LOGGER.debug("Product found with id: {} - name: {}", id, product.getName());
-            return product;
+            return ProductMapper.MAPPER.toModel(product);
 
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while retrieving product. id=" + id, ex, DATABASE_ERROR);
@@ -95,62 +94,62 @@ public class ProductService {
     @Counted(value = "product.service.search", description = "Number of product search operations")
     @Timed(value = "product.service.search", description = "Time taken for product search operations")
     @Transactional(readOnly = true)
-    public Page<ProductEntity> search(ProductQueryRequest queryRequest, Pageable pageable) {
-        LOGGER.debug("Searching products with query: {} and pageable: {}", queryRequest, pageable);
+    public Page<ProductModel> search(ProductModel queryModel, Pageable pageable) {
+        LOGGER.debug("Searching products with query: {} and pageable: {}", queryModel, pageable);
 
         try {
             final Page<ProductEntity> result = repository.findByFilters(
-                    queryRequest.restaurantId(),
-                    queryRequest.name(),
-                    queryRequest.minPrice(),
-                    queryRequest.maxPrice(),
-                    queryRequest.active(),
+                    queryModel.restaurantId(),
+                    queryModel.name(),
+                    queryModel.minPrice(),
+                    queryModel.maxPrice(),
+                    queryModel.active(),
                     pageable
             );
 
             LOGGER.debug("Product search completed. Found {} results out of {} total",
                     result.getNumberOfElements(), result.getTotalElements());
-            return result;
+            return ProductMapper.MAPPER.toPageDomain(result);
 
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while searching products. "
-                    + "query=" + queryRequest + ", pageable=" + pageable, ex, DATABASE_ERROR);
+                    + "query=" + queryModel + ", pageable=" + pageable, ex, DATABASE_ERROR);
         }
     }
 
     @Transactional
-    public ProductEntity update(UUID id, ProductRequest request) {
+    public ProductModel update(UUID id, ProductModel model) {
         LOGGER.info("Updating product with id: {}", id);
 
         try {
             final Optional<ProductEntity> existingProduct = repository.findById(id);
             final ProductEntity current = existingProduct.orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id.toString()));
 
-            if (!Objects.equals(current.getRestaurant().getId(), request.restaurantId())) {
-                if (!restaurantRepository.existsById(request.restaurantId())) {
-                    LOGGER.warn("Attempt to update product to non-existing restaurant: {}", request.restaurantId());
-                    throw new ResourceNotFoundException("Restaurant", request.restaurantId().toString());
+            if (!Objects.equals(current.getRestaurant().getId(), model.restaurantId())) {
+                if (!restaurantRepository.existsById(model.restaurantId())) {
+                    LOGGER.warn("Attempt to update product to non-existing restaurant: {}", model.restaurantId());
+                    throw new ResourceNotFoundException("Restaurant", model.restaurantId().toString());
                 }
             }
 
-            if ((!Objects.equals(current.getName(), request.name()) || !Objects.equals(current.getRestaurant().getId(), request.restaurantId()))
-                    && repository.existsByNameAndRestaurantId(request.name(), request.restaurantId())) {
+            if ((!Objects.equals(current.getName(), model.name()) || !Objects.equals(current.getRestaurant().getId(), model.restaurantId()))
+                    && repository.existsByNameAndRestaurantId(model.name(), model.restaurantId())) {
                 LOGGER.warn("Attempt to update product name to existing name: {} for restaurant: {} "
-                        + "and id: {}", request.name(), request.restaurantId(), id);
-                throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, request.name());
+                        + "and id: {}", model.name(), model.restaurantId(), id);
+                throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
             }
 
-            final ProductEntity updatedProduct = ProductMapper.MAPPER.toEntity(request, current);
+            final ProductEntity updatedProduct = ProductMapper.MAPPER.toEntity(model, current);
             final ProductEntity savedEntity = repository.save(updatedProduct);
 
             LOGGER.info("Product updated successfully with id: {}", id);
-            return savedEntity;
+            return ProductMapper.MAPPER.toModel(savedEntity);
 
         } catch (DataIntegrityViolationException _) {
-            throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, request.name());
+            throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
 
         } catch (DataAccessException ex) {
-            throw new BusinessException("Database error while updating product. id=" + id + ", name=" + request.name(), ex, DATABASE_ERROR);
+            throw new BusinessException("Database error while updating product. id=" + id + ", name=" + model.name(), ex, DATABASE_ERROR);
         }
     }
 
@@ -178,3 +177,4 @@ public class ProductService {
         }
     }
 }
+

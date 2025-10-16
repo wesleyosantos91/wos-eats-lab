@@ -10,7 +10,7 @@ import java.util.UUID;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public record ProductResponse(
         UUID id,
-        UUID restaurantId,
+        RestaurantResponse restaurant,
         String name,
         String description,
         BigDecimal price,

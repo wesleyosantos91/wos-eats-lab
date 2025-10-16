@@ -1,12 +1,11 @@
 package io.github.wesleyosantos91.catalog.domain.service;
 
-import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantQueryRequest;
-import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantRequest;
 import io.github.wesleyosantos91.catalog.core.mapper.RestaurantMapper;
 import io.github.wesleyosantos91.catalog.domain.entity.RestaurantEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.BusinessException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
+import io.github.wesleyosantos91.catalog.domain.model.RestaurantModel;
 import io.github.wesleyosantos91.catalog.domain.repository.KitchenRepository;
 import io.github.wesleyosantos91.catalog.domain.repository.RestaurantRepository;
 import io.micrometer.core.annotation.Counted;
@@ -16,6 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -30,6 +30,7 @@ public class RestaurantService {
     public static final String DATABASE_ERROR = "DATABASE_ERROR";
     private static final Logger LOGGER = LoggerFactory.getLogger(RestaurantService.class);
     private static final String RESOURCE_NAME = "Restaurant";
+    private static final String KITCHEN_RESOURCE_NAME = "Kitchen";
     public static final String UNEXPECTED_ERROR = "UNEXPECTED_ERROR";
     public static final String DATA_INTEGRITY_VIOLATION = "DATA_INTEGRITY_VIOLATION";
     public static final String NAME = "name";
@@ -43,36 +44,37 @@ public class RestaurantService {
     }
 
     @Transactional
-    public RestaurantEntity create(RestaurantRequest request) {
-        LOGGER.info("Creating new restaurant with name: {} for kitchen: {}", request.name(), request.kitchenId());
+    @CacheEvict(value = "restaurants", allEntries = true)
+    public RestaurantModel create(RestaurantModel model) {
+        LOGGER.info("Creating new restaurant with name: {} for kitchen: {}", model.name(), model.kitchenId());
 
         try {
-            if (!kitchenRepository.existsById(request.kitchenId())) {
-                LOGGER.warn("Attempt to create restaurant for non-existing kitchen: {}", request.kitchenId());
-                throw new ResourceNotFoundException("Kitchen", request.kitchenId().toString());
+            if (!kitchenRepository.existsById(model.kitchenId())) {
+                LOGGER.warn("Attempt to create restaurant for non-existing kitchen: {}", model.kitchenId());
+                throw new ResourceNotFoundException(KITCHEN_RESOURCE_NAME, model.kitchenId().toString());
             }
 
-            if (repository.existsByName(request.name())) {
-                LOGGER.warn("Attempt to create restaurant with existing name: {}", request.name());
-                throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, request.name());
+            if (repository.existsByName(model.name())) {
+                LOGGER.warn("Attempt to create restaurant with existing name: {}", model.name());
+                throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
             }
 
-            final RestaurantEntity restaurantEntity = RestaurantMapper.MAPPER.toEntity(request);
+            final RestaurantEntity restaurantEntity = RestaurantMapper.MAPPER.toEntity(model);
             final RestaurantEntity savedEntity = repository.save(restaurantEntity);
 
             LOGGER.info("Restaurant created successfully with id: {}", savedEntity.getId());
-            return savedEntity;
+            return RestaurantMapper.MAPPER.toModel(savedEntity);
 
         } catch (DataIntegrityViolationException _) {
-            throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, request.name());
+            throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
 
         } catch (DataAccessException ex) {
-            throw new BusinessException("Database error while creating restaurant. name=" + request.name(), ex, DATABASE_ERROR);
+            throw new BusinessException("Database error while creating restaurant. name=" + model.name(), ex, DATABASE_ERROR);
         }
     }
 
     @Transactional(readOnly = true)
-    public RestaurantEntity findById(UUID id) {
+    public RestaurantModel findById(UUID id) {
         LOGGER.debug("Searching for restaurant with id: {}", id);
 
         try {
@@ -85,7 +87,7 @@ public class RestaurantService {
 
             final RestaurantEntity restaurant = restaurantOpt.get();
             LOGGER.debug("Restaurant found with id: {} - name: {}", id, restaurant.getName());
-            return restaurant;
+            return RestaurantMapper.MAPPER.toModel(restaurant);
 
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while retrieving restaurant. id=" + id, ex, DATABASE_ERROR);
@@ -95,31 +97,32 @@ public class RestaurantService {
     @Counted(value = "restaurant.service.search", description = "Number of restaurant search operations")
     @Timed(value = "restaurant.service.search", description = "Time taken for restaurant search operations")
     @Transactional(readOnly = true)
-    public Page<RestaurantEntity> search(RestaurantQueryRequest queryRequest, Pageable pageable) {
-        LOGGER.debug("Searching restaurants with query: {} and pageable: {}", queryRequest, pageable);
+    public Page<RestaurantModel> search(RestaurantModel queryModel, Pageable pageable) {
+        LOGGER.debug("Searching restaurants with query: {} and pageable: {}", queryModel, pageable);
 
         try {
             final Page<RestaurantEntity> result = repository.findByFilters(
-                    queryRequest.name(),
-                    queryRequest.kitchenId(),
-                    queryRequest.active(),
-                    queryRequest.minDeliveryFee(),
-                    queryRequest.maxDeliveryFee(),
+                    queryModel.name(),
+                    queryModel.kitchenId(),
+                    queryModel.active(),
+                    queryModel.minDeliveryFee(),
+                    queryModel.maxDeliveryFee(),
                     pageable
             );
 
             LOGGER.debug("Restaurant search completed. Found {} results out of {} total",
                     result.getNumberOfElements(), result.getTotalElements());
-            return result;
+            return RestaurantMapper.MAPPER.toPageDomain(result);
 
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while searching restaurants. "
-                    + "query=" + queryRequest + ", pageable=" + pageable, ex, DATABASE_ERROR);
+                    + "query=" + queryModel + ", pageable=" + pageable, ex, DATABASE_ERROR);
         }
     }
 
     @Transactional
-    public RestaurantEntity update(UUID id, RestaurantRequest request) {
+    @CacheEvict(value = "restaurants", key = "#id")
+    public RestaurantModel update(UUID id, RestaurantModel model) {
         LOGGER.info("Updating restaurant with id: {}", id);
 
         try {
@@ -127,35 +130,36 @@ public class RestaurantService {
             final RestaurantEntity current = existingRestaurant.orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id.toString()));
 
             // Validate kitchen exists if it's being changed
-            if (!Objects.equals(current.getKitchen().getId(), request.kitchenId())) {
-                if (!kitchenRepository.existsById(request.kitchenId())) {
-                    LOGGER.warn("Attempt to update restaurant to non-existing kitchen: {}", request.kitchenId());
-                    throw new ResourceNotFoundException("Kitchen", request.kitchenId().toString());
+            if (!Objects.equals(current.getKitchen().getId(), model.kitchenId())) {
+                if (!kitchenRepository.existsById(model.kitchenId())) {
+                    LOGGER.warn("Attempt to update restaurant to non-existing kitchen: {}", model.kitchenId());
+                    throw new ResourceNotFoundException(KITCHEN_RESOURCE_NAME, model.kitchenId().toString());
                 }
             }
 
             // Check for duplicate restaurant name (only if name is being changed)
-            if (!Objects.equals(current.getName(), request.name())
-                    && repository.existsByName(request.name())) {
-                LOGGER.warn("Attempt to update restaurant name to existing name: {} for id: {}", request.name(), id);
-                throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, request.name());
+            if (!Objects.equals(current.getName(), model.name())
+                    && repository.existsByName(model.name())) {
+                LOGGER.warn("Attempt to update restaurant name to existing name: {} for id: {}", model.name(), id);
+                throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
             }
 
-            final RestaurantEntity updatedRestaurant = RestaurantMapper.MAPPER.toEntity(request, current);
+            final RestaurantEntity updatedRestaurant = RestaurantMapper.MAPPER.toEntity(model, current);
             final RestaurantEntity savedEntity = repository.save(updatedRestaurant);
 
             LOGGER.info("Restaurant updated successfully with id: {}", id);
-            return savedEntity;
+            return RestaurantMapper.MAPPER.toModel(savedEntity);
 
         } catch (DataIntegrityViolationException _) {
-            throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, request.name());
+            throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
 
         } catch (DataAccessException ex) {
-            throw new BusinessException("Database error while updating restaurant. id=" + id + ", name=" + request.name(), ex, DATABASE_ERROR);
+            throw new BusinessException("Database error while updating restaurant. id=" + id + ", name=" + model.name(), ex, DATABASE_ERROR);
         }
     }
 
     @Transactional
+    @CacheEvict(value = "restaurants", key = "#id")
     public void delete(UUID id) {
         LOGGER.info("Deleting restaurant with id: {}", id);
 

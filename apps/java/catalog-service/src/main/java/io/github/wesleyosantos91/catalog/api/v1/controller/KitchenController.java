@@ -38,7 +38,9 @@ public record KitchenController(KitchenService service) {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         LOGGER.debug("Function started 'create kitchen'");
-        final var response = MAPPER.toResponse(service.create(request));
+        final var model = MAPPER.toModel(request);
+        final var createdModel = service.create(model);
+        final var response = MAPPER.toResponse(createdModel);
         stopWatch.stop();
         LOGGER.debug("finished function with sucess 'create kitchen {}' in {} ms", response, stopWatch.getTotalTimeMillis());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -49,8 +51,8 @@ public record KitchenController(KitchenService service) {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         LOGGER.debug("Function started 'getById kitchen' with id {}", id);
-        final var kitchen = service.findById(id);
-        final var response = MAPPER.toResponse(kitchen);
+        final var model = service.findById(id);
+        final var response = MAPPER.toResponse(model);
         stopWatch.stop();
         LOGGER.debug("finished function with sucess 'getById kitchen' {} in {} ms", response, stopWatch.getTotalTimeMillis());
         return ResponseEntity.ok().body(response);
@@ -61,11 +63,12 @@ public record KitchenController(KitchenService service) {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         LOGGER.info("Function started 'find kitchen'");
-        final var pageEntity = service.search(query, page);
+        final var queryModel = MAPPER.toQueryModel(query);
+        final var pageModel = service.search(queryModel, page);
         stopWatch.stop();
         LOGGER.info("finished function with kitchen 'find person' in {} ms", stopWatch.getTotalTimeMillis());
 
-        return ResponseEntity.ok().body(new PagedModel<>(MAPPER.toPageResponse(pageEntity)));
+        return ResponseEntity.ok().body(new PagedModel<>(MAPPER.toPageResponse(pageModel)));
     }
 
     @PutMapping(value = "/{id}")
@@ -75,10 +78,12 @@ public record KitchenController(KitchenService service) {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         LOGGER.debug("Function started 'update kitchen'");
-        final var kitchen = service.update(id, request);
+        final var model = MAPPER.toModel(request);
+        final var updatedModel = service.update(id, model);
+        final var response = MAPPER.toResponse(updatedModel);
         stopWatch.stop();
-        LOGGER.debug("finished function with sucess 'update kitchen' {} in {} ms", kitchen, stopWatch.getTotalTimeMillis());
-        return ResponseEntity.status(HttpStatus.OK).body(MAPPER.toResponse(kitchen));
+        LOGGER.debug("finished function with sucess 'update kitchen' {} in {} ms", response, stopWatch.getTotalTimeMillis());
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @DeleteMapping(value = "/{id}")

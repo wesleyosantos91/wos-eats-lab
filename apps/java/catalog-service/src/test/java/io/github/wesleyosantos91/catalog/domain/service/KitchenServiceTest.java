@@ -11,12 +11,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.github.wesleyosantos91.catalog.api.v1.request.KitchenQueryRequest;
-import io.github.wesleyosantos91.catalog.api.v1.request.KitchenRequest;
 import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.BusinessException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
+import io.github.wesleyosantos91.catalog.domain.model.KitchenModel;
 import io.github.wesleyosantos91.catalog.domain.repository.KitchenRepository;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -52,7 +51,7 @@ class KitchenServiceTest {
     private KitchenService kitchenService;
 
     private KitchenEntity kitchenEntity;
-    private KitchenRequest kitchenRequest;
+    private KitchenModel kitchenModel;
     private UUID kitchenId;
 
     @BeforeEach
@@ -62,7 +61,7 @@ class KitchenServiceTest {
         kitchenEntity.setId(kitchenId);
         kitchenEntity.setName("Italiana");
 
-        kitchenRequest = new KitchenRequest("Italiana");
+        kitchenModel = new KitchenModel("Italiana");
     }
 
     @Nested
@@ -75,10 +74,10 @@ class KitchenServiceTest {
             when(kitchenRepository.existsByName("Italiana")).thenReturn(false);
             when(kitchenRepository.save(any(KitchenEntity.class))).thenReturn(kitchenEntity);
 
-            KitchenEntity result = kitchenService.create(kitchenRequest);
+            KitchenModel result = kitchenService.create(kitchenModel);
 
             assertNotNull(result);
-            assertEquals("Italiana", result.getName());
+            assertEquals("Italiana", result.name());
             verify(kitchenRepository, times(1)).existsByName("Italiana");
             verify(kitchenRepository, times(1)).save(any(KitchenEntity.class));
         }
@@ -90,7 +89,7 @@ class KitchenServiceTest {
 
             ResourceAlreadyExistsException exception = assertThrows(
                     ResourceAlreadyExistsException.class,
-                    () -> kitchenService.create(kitchenRequest)
+                    () -> kitchenService.create(kitchenModel)
             );
 
             assertNotNull(exception);
@@ -107,7 +106,7 @@ class KitchenServiceTest {
 
             ResourceAlreadyExistsException exception = assertThrows(
                     ResourceAlreadyExistsException.class,
-                    () -> kitchenService.create(kitchenRequest)
+                    () -> kitchenService.create(kitchenModel)
             );
 
             assertNotNull(exception);
@@ -123,7 +122,7 @@ class KitchenServiceTest {
 
             BusinessException exception = assertThrows(
                     BusinessException.class,
-                    () -> kitchenService.create(kitchenRequest)
+                    () -> kitchenService.create(kitchenModel)
             );
 
             assertNotNull(exception);
@@ -140,11 +139,11 @@ class KitchenServiceTest {
         void deveRetornarCozinhaQuandoIdExiste() {
             when(kitchenRepository.findById(kitchenId)).thenReturn(Optional.of(kitchenEntity));
 
-            KitchenEntity result = kitchenService.findById(kitchenId);
+            KitchenModel result = kitchenService.findById(kitchenId);
 
             assertNotNull(result);
-            assertEquals(kitchenId, result.getId());
-            assertEquals("Italiana", result.getName());
+            assertEquals(kitchenId, result.id());
+            assertEquals("Italiana", result.name());
             verify(kitchenRepository, times(1)).findById(kitchenId);
         }
 
@@ -186,18 +185,18 @@ class KitchenServiceTest {
         @DisplayName("Deve retornar página de cozinhas")
         void deveRetornarPaginaDeCozinhas() {
             Pageable pageable = PageRequest.of(0, 10);
-            KitchenQueryRequest queryRequest = new KitchenQueryRequest("Italiana");
+            KitchenModel queryModel = new KitchenModel("Italiana");
             var kitchens = new ArrayList<KitchenEntity>();
             kitchens.add(kitchenEntity);
             Page<KitchenEntity> page = new PageImpl<>(kitchens, pageable, 1);
 
             when(kitchenRepository.findByFilters("Italiana", pageable)).thenReturn(page);
 
-            Page<KitchenEntity> result = kitchenService.search(queryRequest, pageable);
+            Page<KitchenModel> result = kitchenService.search(queryModel, pageable);
 
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
-            assertEquals("Italiana", result.getContent().get(0).getName());
+            assertEquals("Italiana", result.getContent().get(0).name());
             verify(kitchenRepository, times(1)).findByFilters("Italiana", pageable);
         }
 
@@ -205,12 +204,12 @@ class KitchenServiceTest {
         @DisplayName("Deve retornar página vazia quando nenhuma cozinha encontrada")
         void deveRetornarPaginaVaziaQuandoNenhumaCozinhaEncontrada() {
             Pageable pageable = PageRequest.of(0, 10);
-            KitchenQueryRequest queryRequest = new KitchenQueryRequest("Inexistente");
+            KitchenModel queryModel = new KitchenModel("Inexistente");
             Page<KitchenEntity> emptyPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
 
             when(kitchenRepository.findByFilters("Inexistente", pageable)).thenReturn(emptyPage);
 
-            Page<KitchenEntity> result = kitchenService.search(queryRequest, pageable);
+            Page<KitchenModel> result = kitchenService.search(queryModel, pageable);
 
             assertNotNull(result);
             assertEquals(0, result.getTotalElements());
@@ -221,14 +220,14 @@ class KitchenServiceTest {
         @DisplayName("Deve lançar BusinessException quando há erro de banco de dados")
         void deveLancarBusinessExceptionQuandoErroBancoDados() {
             Pageable pageable = PageRequest.of(0, 10);
-            KitchenQueryRequest queryRequest = new KitchenQueryRequest("Italiana");
+            KitchenModel queryModel = new KitchenModel("Italiana");
 
             when(kitchenRepository.findByFilters(anyString(), any(Pageable.class)))
                     .thenThrow(new DataAccessException("Database error") {});
 
             BusinessException exception = assertThrows(
                     BusinessException.class,
-                    () -> kitchenService.search(queryRequest, pageable)
+                    () -> kitchenService.search(queryModel, pageable)
             );
 
             assertNotNull(exception);
@@ -243,7 +242,7 @@ class KitchenServiceTest {
         @Test
         @DisplayName("Deve atualizar uma cozinha com sucesso")
         void deveAtualizarCozinhaComSucesso() {
-            KitchenRequest updateRequest = new KitchenRequest("Italiana Moderna");
+            KitchenModel updateModel = new KitchenModel("Italiana Moderna");
             KitchenEntity updatedEntity = new KitchenEntity();
             updatedEntity.setId(kitchenId);
             updatedEntity.setName("Italiana Moderna");
@@ -252,10 +251,10 @@ class KitchenServiceTest {
             when(kitchenRepository.existsByName("Italiana Moderna")).thenReturn(false);
             when(kitchenRepository.save(any(KitchenEntity.class))).thenReturn(updatedEntity);
 
-            KitchenEntity result = kitchenService.update(kitchenId, updateRequest);
+            KitchenModel result = kitchenService.update(kitchenId, updateModel);
 
             assertNotNull(result);
-            assertEquals("Italiana Moderna", result.getName());
+            assertEquals("Italiana Moderna", result.name());
             verify(kitchenRepository, times(1)).findById(kitchenId);
             verify(kitchenRepository, times(1)).save(any(KitchenEntity.class));
         }
@@ -267,7 +266,7 @@ class KitchenServiceTest {
 
             ResourceNotFoundException exception = assertThrows(
                     ResourceNotFoundException.class,
-                    () -> kitchenService.update(kitchenId, kitchenRequest)
+                    () -> kitchenService.update(kitchenId, kitchenModel)
             );
 
             assertNotNull(exception);
@@ -278,7 +277,7 @@ class KitchenServiceTest {
         @Test
         @DisplayName("Deve lançar ResourceAlreadyExistsException quando novo nome já existe")
         void deveLancarExcecaoQuandoNovoNomeJaExiste() {
-            KitchenRequest updateRequest = new KitchenRequest("Japonesa");
+            KitchenModel updateRequest = new KitchenModel("Japonesa");
 
             when(kitchenRepository.findById(kitchenId)).thenReturn(Optional.of(kitchenEntity));
             when(kitchenRepository.existsByName("Japonesa")).thenReturn(true);
@@ -296,15 +295,15 @@ class KitchenServiceTest {
         @DisplayName("Deve atualizar cozinha com mesmo nome sem verificar duplicata")
         void deveAtualizarCozinhaComMesmoNomeSemVerificarDuplicata() {
             // Usar o mesmo nome da cozinha existente
-            KitchenRequest updateRequest = new KitchenRequest("Italiana");
+            KitchenModel updateRequest = new KitchenModel("Italiana");
 
             when(kitchenRepository.findById(kitchenId)).thenReturn(Optional.of(kitchenEntity));
             when(kitchenRepository.save(any(KitchenEntity.class))).thenReturn(kitchenEntity);
 
-            KitchenEntity result = kitchenService.update(kitchenId, updateRequest);
+            KitchenModel result = kitchenService.update(kitchenId, updateRequest);
 
             assertNotNull(result);
-            assertEquals("Italiana", result.getName());
+            assertEquals("Italiana", result.name());
             verify(kitchenRepository, times(1)).findById(kitchenId);
             verify(kitchenRepository, never()).existsByName(anyString()); // Não deve verificar nome duplicado
             verify(kitchenRepository, times(1)).save(any(KitchenEntity.class));
@@ -313,7 +312,7 @@ class KitchenServiceTest {
         @Test
         @DisplayName("Deve lançar ResourceAlreadyExistsException quando há violação de integridade")
         void deveLancarExcecaoQuandoViolacaoIntegridade() {
-            KitchenRequest updateRequest = new KitchenRequest("Italiana Moderna");
+            KitchenModel updateRequest = new KitchenModel("Italiana Moderna");
 
             when(kitchenRepository.findById(kitchenId)).thenReturn(Optional.of(kitchenEntity));
             when(kitchenRepository.existsByName("Italiana Moderna")).thenReturn(false);
@@ -332,7 +331,7 @@ class KitchenServiceTest {
         @Test
         @DisplayName("Deve lançar BusinessException quando há erro de banco de dados")
         void deveLancarBusinessExceptionQuandoErroBancoDados() {
-            KitchenRequest updateRequest = new KitchenRequest("Italiana Moderna");
+            KitchenModel updateRequest = new KitchenModel("Italiana Moderna");
 
             when(kitchenRepository.findById(kitchenId)).thenReturn(Optional.of(kitchenEntity));
             when(kitchenRepository.existsByName("Italiana Moderna")).thenReturn(false);
@@ -432,3 +431,5 @@ class KitchenServiceTest {
         }
     }
 }
+
+

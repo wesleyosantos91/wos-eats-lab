@@ -422,3 +422,394 @@ Os testes podem ser integrados em pipelines:
 ## Relatórios
 
 Execute com `--out html=report.html` para gerar relatórios visuais detalhados.
+
+---
+
+## Análise de Performance e Melhorias Recomendadas
+
+### 📊 Problemas Identificados nos Testes
+
+#### 1. **CRÍTICO: Alta Taxa de Falhas (32-68%)**
+**Observado em**: Todos os testes com múltiplos VUs
+- **Load Test**: 32% falhas
+- **Stress Test**: 68% falhas  
+- **Spike Test**: 31% falhas
+- **Synthetic Test**: 56% falhas
+
+#### 2. **ALTO: Problemas de Validação UUID**
+**Erro Frequente**: `Invalid UUID string: 1, 2, 3...`
+- Muitas requisições com IDs numéricos simples
+- Sugere problema na geração de dados de teste ou endpoints
+
+#### 3. **ALTO: Validação de Campos Obrigatórios**
+**Erro Frequente**: `kitchenId não deve ser nulo`
+- Falhas na criação de restaurantes
+- Indica problemas na estrutura de payloads
+
+#### 4. **MÉDIO: Degradação Rápida Sob Carga**
+- **1 VU**: 100% sucesso
+- **2+ VUs**: 60% ou menos sucesso
+- Performance degrada rapidamente com concorrência
+
+### 🚀 Melhorias Recomendadas para a Aplicação
+
+#### **1. IMEDIATO - Correções Críticas**
+
+##### **A. Validação e Parsing de UUIDs**
+```java
+// Problema atual: endpoint aceita IDs inválidos
+@GetMapping("/{id}")
+public ResponseEntity<KitchenResponse> getKitchen(@PathVariable String id) {
+    // Melhorar validação antes do parsing
+}
+
+// Solução recomendada:
+@GetMapping("/{id}")
+public ResponseEntity<KitchenResponse> getKitchen(@PathVariable UUID id) {
+    // Spring automaticamente valida e converte
+}
+
+// Ou adicionar validação customizada:
+@GetMapping("/{id}")
+public ResponseEntity<KitchenResponse> getKitchen(@PathVariable String id) {
+    try {
+        UUID uuid = UUID.fromString(id);
+        // proceder com lógica
+    } catch (IllegalArgumentException e) {
+        return ResponseEntity.badRequest()
+            .body(new ErrorResponse("Invalid UUID format: " + id));
+    }
+}
+```
+
+##### **B. Validação de Dados de Entrada**
+```java
+// Problema: kitchenId null em RestaurantRequest
+@PostMapping
+public ResponseEntity<RestaurantResponse> createRestaurant(
+    @Valid @RequestBody RestaurantRequest request) {
+    
+    // Adicionar validação adicional
+    if (request.getKitchenId() == null) {
+        throw new ValidationException("kitchenId é obrigatório");
+    }
+    
+    // Verificar se kitchen existe antes de criar restaurant
+    if (!kitchenService.exists(request.getKitchenId())) {
+        throw new ValidationException("Kitchen não encontrada: " + request.getKitchenId());
+    }
+}
+```
+
+##### **C. Global Exception Handler Melhorado**
+```java
+@ControllerAdvice
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleUUIDFormatException(
+        MethodArgumentTypeMismatchException ex) {
+        
+        String message = String.format(
+            "Formato inválido para o parâmetro '%s': '%s'. UUID esperado.", 
+            ex.getName(), ex.getValue()
+        );
+        
+        return ResponseEntity.badRequest()
+            .body(new ErrorResponse("INVALID_UUID_FORMAT", message));
+    }
+    
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ValidationErrorResponse> handleValidationErrors(
+        MethodArgumentNotValidException ex) {
+        
+        // Retornar erros estruturados para melhor debugging
+        ValidationErrorResponse response = new ValidationErrorResponse();
+        ex.getBindingResult().getFieldErrors().forEach(error -> 
+            response.addError(error.getField(), error.getDefaultMessage())
+        );
+        
+        return ResponseEntity.badRequest().body(response);
+    }
+}
+```
+
+#### **2. CURTO PRAZO - Otimizações de Performance**
+
+##### **A. Connection Pool Tuning**
+```yaml
+# application.yml
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 20        # Aumentar de padrão (10)
+      minimum-idle: 5              # Manter conexões ociosas
+      connection-timeout: 20000    # 20s timeout
+      idle-timeout: 300000         # 5min idle
+      max-lifetime: 1200000        # 20min max lifetime
+      leak-detection-threshold: 60000  # Detectar vazamentos
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 25           # Batch processing
+          fetch_size: 25           # Fetch optimization
+        cache:
+          use_second_level_cache: true
+          region.factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
+```
+
+##### **B. Cache Implementation**
+```java
+@Service
+@EnableCaching
+public class KitchenService {
+    
+    @Cacheable(value = "kitchens", key = "#id")
+    public Optional<Kitchen> findById(UUID id) {
+        return kitchenRepository.findById(id);
+    }
+    
+    @Cacheable(value = "kitchens-list", key = "'all'")
+    public List<Kitchen> findAll() {
+        return kitchenRepository.findAll();
+    }
+    
+    @CacheEvict(value = "kitchens", key = "#id")
+    @CacheEvict(value = "kitchens-list", allEntries = true)
+    public Kitchen save(Kitchen kitchen) {
+        return kitchenRepository.save(kitchen);
+    }
+}
+
+// Cache configuration
+@Configuration
+@EnableCaching
+public class CacheConfig {
+    
+    @Bean
+    public CacheManager cacheManager() {
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+        cacheManager.setCaffeine(Caffeine.newBuilder()
+            .maximumSize(1000)
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .recordStats());
+        return cacheManager;
+    }
+}
+```
+
+##### **C. Async Processing e Rate Limiting**
+```java
+@RestController
+@RequestMapping("/v1/kitchens")
+public class KitchenController {
+    
+    @Autowired
+    private RateLimiter rateLimiter;
+    
+    @GetMapping
+    @RateLimited(permits = 100, window = "1m") // 100 req/min
+    public ResponseEntity<List<KitchenResponse>> getAllKitchens() {
+        return ResponseEntity.ok(kitchenService.findAll());
+    }
+    
+    @PostMapping
+    @Async
+    @RateLimited(permits = 20, window = "1m") // 20 creates/min
+    public CompletableFuture<ResponseEntity<KitchenResponse>> createKitchen(
+        @Valid @RequestBody KitchenRequest request) {
+        
+        Kitchen kitchen = kitchenService.create(request);
+        return CompletableFuture.completedFuture(
+            ResponseEntity.ok(KitchenMapper.toResponse(kitchen))
+        );
+    }
+}
+```
+
+##### **D. Database Query Optimization**
+```java
+@Repository
+public interface KitchenRepository extends JpaRepository<Kitchen, UUID> {
+    
+    // Usar queries otimizadas com fetch joins
+    @Query("SELECT k FROM Kitchen k LEFT JOIN FETCH k.restaurants WHERE k.id = :id")
+    Optional<Kitchen> findByIdWithRestaurants(@Param("id") UUID id);
+    
+    // Paginação para listas grandes
+    @Query("SELECT k FROM Kitchen k WHERE k.active = true")
+    Page<Kitchen> findActiveKitchens(Pageable pageable);
+    
+    // Índices otimizados (em migration SQL)
+    // CREATE INDEX idx_kitchen_name ON kitchens(name);
+    // CREATE INDEX idx_kitchen_active ON kitchens(active);
+}
+```
+
+#### **3. MÉDIO PRAZO - Arquitetura e Monitoramento**
+
+##### **A. Health Checks e Circuit Breaker**
+```java
+@Component
+public class DatabaseHealthIndicator implements HealthIndicator {
+    
+    @Autowired
+    private DataSource dataSource;
+    
+    @Override
+    public Health health() {
+        try (Connection connection = dataSource.getConnection()) {
+            if (connection.isValid(1)) {
+                return Health.up()
+                    .withDetail("database", "PostgreSQL")
+                    .withDetail("validationQuery", "SELECT 1")
+                    .build();
+            }
+        } catch (Exception e) {
+            return Health.down()
+                .withDetail("error", e.getMessage())
+                .build();
+        }
+        return Health.down().build();
+    }
+}
+
+@Service
+public class KitchenService {
+    
+    @CircuitBreaker(name = "kitchen-service", fallbackMethod = "fallbackFindAll")
+    @TimeLimiter(name = "kitchen-service")
+    @Retry(name = "kitchen-service")
+    public List<Kitchen> findAll() {
+        return kitchenRepository.findAll();
+    }
+    
+    public List<Kitchen> fallbackFindAll(Exception ex) {
+        // Retornar dados em cache ou resposta padrão
+        return getCachedKitchens();
+    }
+}
+```
+
+##### **B. Metrics e Observabilidade**
+```yaml
+# application.yml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+```
+
+```java
+@RestController
+public class KitchenController {
+    
+    private final MeterRegistry meterRegistry;
+    private final Counter createKitchenCounter;
+    private final Timer responseTimer;
+    
+    public KitchenController(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+        this.createKitchenCounter = Counter.builder("kitchen.created")
+            .description("Number of kitchens created")
+            .register(meterRegistry);
+        this.responseTimer = Timer.builder("kitchen.response.time")
+            .description("Kitchen response time")
+            .register(meterRegistry);
+    }
+    
+    @PostMapping
+    public ResponseEntity<KitchenResponse> createKitchen(@RequestBody KitchenRequest request) {
+        return Timer.Sample.start(meterRegistry)
+            .stop(responseTimer.builder().tag("operation", "create"))
+            .recordCallable(() -> {
+                Kitchen kitchen = kitchenService.create(request);
+                createKitchenCounter.increment();
+                return ResponseEntity.ok(KitchenMapper.toResponse(kitchen));
+            });
+    }
+}
+```
+
+#### **4. LONGO PRAZO - Escalabilidade**
+
+##### **A. Implementar Paginação**
+```java
+@GetMapping
+public ResponseEntity<Page<KitchenResponse>> getAllKitchens(
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "20") int size,
+    @RequestParam(defaultValue = "name") String sortBy) {
+    
+    Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+    Page<Kitchen> kitchens = kitchenService.findAll(pageable);
+    
+    return ResponseEntity.ok(kitchens.map(KitchenMapper::toResponse));
+}
+```
+
+##### **B. Read Replicas e CQRS**
+```java
+@Service
+public class KitchenQueryService {
+    
+    @Autowired
+    @Qualifier("readOnlyJdbcTemplate")
+    private JdbcTemplate readOnlyJdbcTemplate;
+    
+    public List<KitchenSummary> findKitchenSummaries() {
+        // Queries de leitura otimizadas em replica
+        return readOnlyJdbcTemplate.query(
+            "SELECT id, name, active FROM kitchens WHERE active = true",
+            new KitchenSummaryRowMapper()
+        );
+    }
+}
+```
+
+### 📈 **Resultados Esperados Após Melhorias**
+
+#### **Métricas Alvo (Pós-Otimização)**
+- **Taxa de Sucesso**: >95% em todos os testes
+- **Tempo de Resposta**: P95 < 500ms para reads, P95 < 1s para writes
+- **Throughput**: >500 req/s por instância
+- **Taxa de Erro**: <2% em condições normais
+
+#### **Capacidade de Escalabilidade**
+- **Suporte a 100+ VUs** sem degradação significativa
+- **Degradação graciosa** sob stress (erro máximo 10%)
+- **Recuperação rápida** após picos de tráfego
+
+### 🔍 **Próximos Passos de Implementação**
+
+1. **Semana 1**: Correções críticas (UUID validation, exception handling)
+2. **Semana 2**: Otimizações de performance (connection pool, cache)
+3. **Semana 3**: Rate limiting e async processing
+4. **Semana 4**: Monitoring e health checks
+5. **Semana 5**: Testes de validação e ajustes finais
+
+### 📋 **Checklist de Validação**
+
+- [ ] Taxa de erro < 5% em load tests
+- [ ] Tempo de resposta P95 < 1s
+- [ ] Zero erros de UUID validation
+- [ ] Zero erros de campos obrigatórios
+- [ ] Suporte a 50+ VUs simultâneos
+- [ ] Métricas de observabilidade funcionando
+- [ ] Cache hit rate > 80% para leituras
+- [ ] Health checks respondendo corretamente

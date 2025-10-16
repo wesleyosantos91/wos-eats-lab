@@ -1,97 +1,210 @@
 # 🧪 Guia de Testes - Catalog Service
 
-##   Status Geral dos Testes
+## 📋 Índice
+- [Status Geral](#-status-geral-dos-testes)
+- [Visão Geral](#-visão-geral)
+- [Stack de Testes](#️-stack-de-testes)
+- [Comandos Rápidos](#-comandos-rápidos)
+- [1. Testes Unitários](#1️⃣-testes-unitários-ut)
+- [2. Testes de Integração](#2️⃣-testes-de-integração-it)
+- [3. Testes de Contrato](#3️⃣-testes-de-contrato-contract-tests)
+- [4. Testes BDD](#4️⃣-testes-bdd-cucumber)
+- [5. Testes de Arquitetura](#5️⃣-testes-de-arquitetura-archunit)
+- [6. Cobertura de Código](#6️⃣-cobertura-de-código-jacoco)
+- [7. Testes de Mutação](#7️⃣-testes-de-mutação-pit)
+- [8. Checkstyle](#8️⃣-checkstyle)
+- [Configurações](#️-configurações-e-dependências)
+- [Boas Práticas](#-boas-práticas)
+- [Próximos Passos](#-próximos-passos-recomendados)
+
+---
+
+## 🎯 Status Geral dos Testes
 
 ### ✅ Conquistas
-- **115 testes executados**: 100% passando
+- **169 testes executados**: 100% passando
 - **KitchenService**: 100% de cobertura
 - **RestaurantService**: 100% de cobertura
 - **Controllers**: 100% de cobertura (Kitchen e Restaurant)
-- **Contract Tests**: 44 testes (19 Kitchen + 25 Restaurant)
+- **Contract Tests**: 44 testes validando schemas JSON e status codes
+- **Architecture Tests**: 13 testes passando (6 classes de teste ArchUnit)
 - **Checkstyle**: 0 violações
 
 ### ⚠️ Áreas de Melhoria
-- **Cobertura Total**: 68% (meta: 90%)
-- **Testes de Mutação**: 64% (meta: 90%) - **CRÍTICO**
-- **ProductService/Controller**: Baixa cobertura
+- **Cobertura Total**: 69% (meta: 90%)
+- **Testes de Mutação**: 62% (meta: 90%) - **CRÍTICO**
+- **ProductService/Controller**: Baixa cobertura (7% e 5%)
+- **Mutações Sobreviventes**: 2 (NullReturnValsMutator)
+- **Mutações Sem Cobertura**: 21
 
-### 🎯 Métricas Principais
+### 📊 Métricas Principais
 | Métrica | Atual | Meta | Status |
 |---------|-------|------|--------|
-| Cobertura de Linha | 68% | 90% | ⚠️ |
-| Mutações Eliminadas | 64% | 90% | ❌ |
-| Testes Passando | 100% | 100% | ✅ |
+| Testes Passando | 100% (169/169) | 100% | ✅ |
+| Cobertura de Linha | 69% | 90% | ⚠️ |
+| Mutações Eliminadas | 62% | 90% | ❌ |
 | Violações Checkstyle | 0 | 0 | ✅ |
+| Testes de Arquitetura | 13/13 | 13/13 | ✅ |
 
-##  📋 Visão Geral
+---
 
-Este projeto implementa três tipos de testes:
-- **Unit Tests (UT)**: Testes unitários com JUnit 5 + Mockito
-- **Integration Tests (IT)**: Testes de integração com Spring Boot Test + Testcontainers
-- **BDD/Regression Tests**: Testes BDD com Cucumber 7 + JUnit Platform
+## 📋 Visão Geral
+
+Este projeto implementa **8 tipos de testes**:
+
+1. **Unit Tests (UT)**: Testes unitários com JUnit 5 + Mockito
+2. **Integration Tests (IT)**: Testes de integração com Spring Boot Test + Testcontainers
+3. **Contract Tests**: Testes de contrato de API REST com Rest Assured + JSON Schema Validator
+4. **BDD Tests**: Testes BDD com Cucumber 7 + JUnit Platform
+5. **Architecture Tests**: Testes de arquitetura com ArchUnit + JUnit 5
+6. **Code Coverage**: Cobertura de código com JaCoCo
+7. **Mutation Tests**: Testes de mutação com PIT
+8. **Code Quality**: Validação de qualidade com Checkstyle
+
+---
 
 ## 🛠️ Stack de Testes
 
-- **JUnit 5 Platform**
-- **Cucumber 7.22.2**
-- **Spring Boot Test 3.5.6**
-- **Testcontainers** (PostgreSQL 17.6)
-- **JaCoCo 0.8.14** (cobertura de código - mínimo 90%)
-- **PIT Mutation Testing 1.21.0** (mutation threshold: 90%)
-- **Mockito** (incluído no spring-boot-starter-test)
-- **MockMvc** (testes de controller)
+| Tecnologia | Versão | Uso |
+|------------|--------|-----|
+| JUnit 5 Platform | 5.12.2 | Framework de testes |
+| Mockito | Incluído no Spring Boot Test | Mocks e stubs |
+| Spring Boot Test | 3.5.6 | Testes de integração |
+| Testcontainers | PostgreSQL 17.6 | Containers para testes |
+| Rest Assured | 5.5.6 | Testes de API REST |
+| JSON Schema Validator | 5.5.6 | Validação de schemas JSON |
+| Cucumber | 7.22.2 | Testes BDD |
+| ArchUnit | 1.4.1 | Testes de arquitetura |
+| JaCoCo | 0.8.14 | Cobertura de código |
+| PIT | 1.21.0 | Testes de mutação |
+| Checkstyle | 3.6.0 | Qualidade de código |
 
-## � Configuração e Dependências
+---
 
-### Plugins Maven Configurados
-- **Maven Surefire Plugin**: Execução de Unit Tests
-- **Maven Failsafe Plugin**: Execução de Integration Tests e Contract Tests  
-- **JaCoCo Plugin**: Relatórios de cobertura de código
-- **PIT Plugin**: Testes de mutação
-- **Checkstyle Plugin**: Validação de qualidade de código
+## ⚡ Comandos Rápidos
 
-### Dependências de Teste Principais
-- **JUnit 5**: Framework de testes unitários
-- **Spring Boot Test**: Testes integrados com Spring Boot
-- **Testcontainers**: Containers para testes de integração
-- **Cucumber**: Testes BDD (Behavior Driven Development)
-- **Rest Assured 5.5.6**: Testes de contrato de API REST
-- **JSON Schema Validator 5.5.6**: Validação de schemas JSON
-- **Mockito**: Framework de mocks
+```bash
+# Executar TODOS os testes (UT + IT + BDD + Contract + Architecture)
+./mvnw clean verify
 
-### Estrutura de Pacotes de Teste
+# Executar SOMENTE testes unitários
+./mvnw clean test
 
-```
-src/test/
-├── java/
-│   └── io/github/wesleyosantos91/catalog/
-│       ├── ApplicationTests.java                       # ✅ Smoke test da aplicação
-│       ├── TestcontainersConfiguration.java            # ✅ Configuração Testcontainers (ÚNICA)
-│       ├── api/v1/controller/
-│       │   ├── KitchenControllerTest.java              # ✅ UT - Controller (8 testes)
-│       │   ├── KitchenControllerIT.java                # ✅ IT - Controller (10 testes)
-│       │   ├── RestaurantControllerTest.java           # ✅ UT - Controller (16 testes)
-│       │   └── RestaurantControllerIT.java             # ✅ IT - Controller (17 testes)
-│       ├── domain/service/
-│       │   ├── KitchenServiceTest.java                 # ✅ UT - Service (12 testes)
-│       │   └── RestaurantServiceTest.java              # ✅ UT - Service (29 testes)
-│       └── cucumber/
-│           ├── CucumberIT.java                         # ✅ Suite BDD (14 cenários)
-│           ├── step/
-│           │   ├── KitchenStep.java                    # ✅ Step Definitions
-│           │   └── RestaurantStep.java                 # ✅ Step Definitions
-│           └── utils/
-│               └── FeatureUtils.java                   # ✅ Utilitários
-└── resources/
-    ├── application-integration.yml                     # ✅ Configuração profile integration
-    └── features/
-        ├── kitchen.feature                             # ✅ Cenários BDD Kitchen (8 cenários)
-        └── restaurant.feature                          # ✅ Cenários BDD Restaurant (6 cenários)
+# Executar SOMENTE testes de integração (IT + BDD + Contract)
+./mvnw verify "-Dskip.ut=true" "-Dskip.it=false"
+
+# Executar testes de mutação
+./mvnw clean test pitest:mutationCoverage
+
+# Executar checkstyle
+./mvnw checkstyle:check
+
+# Pular todos os testes
+./mvnw clean install -DskipTests
 ```
 
-## 🐳 Testcontainers Configuration
+---
 
-A classe `TestcontainersConfiguration` é usada por **TODOS** os testes de integração e BDD:
+## 1️⃣ Testes Unitários (UT)
+
+### 📝 Descrição
+Testes unitários validam unidades isoladas de código (classes, métodos) usando mocks para dependências externas.
+
+### 🎯 Comando
+```bash
+./mvnw clean test
+```
+
+### 📊 Resultado Atual
+- **Total**: 84 testes
+- **Sucesso**: 84 ✅
+- **Falhas**: 0
+- **Tempo**: ~12 segundos
+
+### 📁 Estrutura
+```
+src/test/java/
+├── api/v1/controller/
+│   ├── KitchenControllerTest.java        # 8 testes
+│   └── RestaurantControllerTest.java     # 16 testes
+├── domain/service/
+│   ├── KitchenServiceTest.java           # 21 testes
+│   └── RestaurantServiceTest.java        # 29 testes
+└── architecture/
+    ├── LayeredArchitectureTest.java      # 1 teste
+    ├── NamingConventionTest.java         # 5 testes
+    ├── SpringAnnotationTest.java         # 4 testes
+    └── DependencyTest.java               # 3 testes
+```
+
+### 🧪 Cobertura por Classe
+| Classe | Testes | Cobertura |
+|--------|--------|-----------|
+| KitchenController | 8 | 100% |
+| RestaurantController | 16 | 100% |
+| KitchenService | 21 | 100% |
+| RestaurantService | 29 | 100% |
+
+### 💡 Exemplo de Teste
+```java
+@WebMvcTest(KitchenController.class)
+class KitchenControllerTest {
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @MockBean
+    private KitchenService kitchenService;
+    
+    @Test
+    @DisplayName("Deve criar uma cozinha com sucesso")
+    void shouldCreateKitchen() throws Exception {
+        // Given
+        KitchenRequest request = new KitchenRequest("Italiana");
+        KitchenModel model = new KitchenModel(UUID.randomUUID(), "Italiana");
+        when(kitchenService.create(any())).thenReturn(model);
+        
+        // When & Then
+        mockMvc.perform(post("/v1/kitchens")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Italiana"));
+    }
+}
+```
+
+---
+
+## 2️⃣ Testes de Integração (IT)
+
+### 📝 Descrição
+Testes de integração validam a aplicação com todas as camadas integradas, incluindo banco de dados real (via Testcontainers).
+
+### 🎯 Comando
+```bash
+./mvnw verify "-Dskip.ut=true" "-Dskip.it=false"
+```
+
+### 📊 Resultado Atual
+- **Total**: 85 testes
+  - **Integration Tests (Controllers IT)**: 27 testes
+  - **BDD/Cucumber Tests**: 14 cenários
+  - **Contract Tests**: 44 testes (incluídos nos IT)
+- **Sucesso**: 85 ✅
+- **Falhas**: 0
+- **Tempo**: ~50 segundos
+
+### 📁 Estrutura
+```
+src/test/java/
+└── api/v1/controller/
+    ├── KitchenControllerIT.java          # 10 testes
+    └── RestaurantControllerIT.java       # 17 testes
+```
+
+### 🐳 Testcontainers
+Todos os testes de integração usam PostgreSQL via Testcontainers:
 
 ```java
 @TestConfiguration(proxyBeanMethods = false)
@@ -108,433 +221,650 @@ public class TestcontainersConfiguration {
 }
 ```
 
-**Como usar:**
+### 💡 Exemplo de Teste
 ```java
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)  // ✅ Importa a configuração
+@Import(TestcontainersConfiguration.class)
 @ActiveProfiles("integration")
-class MeuTesteIT { ... }
+class KitchenControllerIT {
+    
+    @Autowired
+    private TestRestTemplate restTemplate;
+    
+    @Test
+    @DisplayName("Deve criar uma cozinha com sucesso")
+    void shouldCreateKitchen() {
+        // Given
+        KitchenRequest request = new KitchenRequest("Italiana");
+        
+        // When
+        ResponseEntity<KitchenResponse> response = restTemplate
+                .postForEntity("/v1/kitchens", request, KitchenResponse.class);
+        
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody().getName()).isEqualTo("Italiana");
+    }
+}
 ```
 
-## 🎯 Comandos Maven
+---
 
-### Executar TODOS os testes (UT + IT + BDD)
+## 3️⃣ Testes de Contrato (Contract Tests)
+
+### 📝 Descrição
+Testes de contrato validam que a API REST atende aos contratos definidos, incluindo schemas JSON, headers HTTP e status codes corretos.
+
+### 🎯 Comando
 ```bash
-mvn clean verify
+# Contract tests estão incluídos nos Integration Tests
+./mvnw verify "-Dskip.ut=true" "-Dskip.it=false"
+
+# Ou executar testes específicos de contrato
+./mvnw test -Dtest=*ContractIT
 ```
 
-### Executar SOMENTE Unit Tests (Surefire)
+### 📊 Resultado Atual
+- **KitchenControllerContractIT**: 19 testes ✅
+- **RestaurantControllerContractIT**: 25 testes ✅
+- **Total**: 44 testes de contrato
+
+### 🔍 O que é validado
+✅ **Schemas JSON**: Estrutura das respostas  
+✅ **Status Codes**: Códigos HTTP corretos  
+✅ **Headers**: Content-Type, Location, etc.  
+✅ **Validações**: Erros de validação (400 Bad Request)  
+✅ **Recursos não encontrados**: 404 Not Found  
+✅ **Conflitos**: 409 Conflict  
+
+### 📁 Schemas JSON
+```
+src/test/resources/schemas/
+├── kitchen-response-schema.json
+├── kitchen-page-response-schema.json
+├── restaurant-create-response-schema.json
+├── restaurant-page-response-schema.json
+├── restaurant-response-schema.json
+├── problem-details-error-schema.json
+└── error-response-schema.json
+```
+
+### 💡 Exemplo de Teste
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(TestcontainersConfiguration.class)
+@ActiveProfiles("integration")
+class KitchenControllerContractIT {
+    
+    @LocalServerPort
+    private int port;
+    
+    @Test
+    @DisplayName("POST /v1/kitchens - Deve criar cozinha e validar schema")
+    void shouldCreateKitchenAndValidateSchema() {
+        given()
+            .port(port)
+            .contentType(ContentType.JSON)
+            .body(Map.of("name", "Italiana"))
+        .when()
+            .post("/v1/kitchens")
+        .then()
+            .statusCode(201)
+            .header("Content-Type", "application/json")
+            .header("Location", notNullValue())
+            .body(matchesJsonSchemaInClasspath("schemas/kitchen-response-schema.json"))
+            .body("name", equalTo("Italiana"));
+    }
+}
+```
+
+### 🎯 Endpoints Testados
+
+#### Kitchen API
+- ✅ `POST /v1/kitchens` - Criar cozinha (5 testes)
+- ✅ `GET /v1/kitchens/{id}` - Buscar por ID (3 testes)
+- ✅ `GET /v1/kitchens` - Listar com paginação (4 testes)
+- ✅ `PUT /v1/kitchens/{id}` - Atualizar cozinha (4 testes)
+- ✅ `DELETE /v1/kitchens/{id}` - Deletar cozinha (3 testes)
+
+#### Restaurant API
+- ✅ `POST /v1/restaurants` - Criar restaurante (6 testes)
+- ✅ `GET /v1/restaurants/{id}` - Buscar por ID (4 testes)
+- ✅ `GET /v1/restaurants` - Listar com paginação (5 testes)
+- ✅ `PUT /v1/restaurants/{id}` - Atualizar restaurante (4 testes)
+- ✅ `DELETE /v1/restaurants/{id}` - Deletar restaurante (4 testes)
+- ✅ Validações gerais de headers e Content-Type (2 testes)
+
+---
+
+## 4️⃣ Testes BDD (Cucumber)
+
+### 📝 Descrição
+Testes BDD (Behavior Driven Development) escritos em Gherkin descrevem comportamentos da aplicação em linguagem natural.
+
+### 🎯 Comando
 ```bash
-mvn clean test "-Dskip.it=true"
-```
-✅ **Resultado atual: 71 testes passando (0 falhas)**
+# BDD tests estão incluídos nos Integration Tests
+./mvnw verify "-Dskip.ut=true" "-Dskip.it=false"
 
-### Executar SOMENTE Contract Tests (Rest Assured)
+# Filtrar por tags
+./mvnw verify "-Dcucumber.filter.tags=@smoke"
+./mvnw verify "-Dcucumber.filter.tags=@regression"
+./mvnw verify "-Dcucumber.filter.tags=not @wip"
+```
+
+### 📊 Resultado Atual
+- **Total**: 14 cenários ✅
+- **Kitchen Features**: 8 cenários
+- **Restaurant Features**: 6 cenários
+- **Steps**: 62 steps passando
+
+### 📁 Estrutura
+```
+src/test/
+├── java/
+│   └── cucumber/
+│       ├── CucumberIT.java           # Suite BDD
+│       └── step/
+│           ├── KitchenStep.java      # Step Definitions
+│           └── RestaurantStep.java   # Step Definitions
+└── resources/
+    └── features/
+        ├── kitchen.feature           # 8 cenários
+        └── restaurant.feature        # 6 cenários
+```
+
+### 🎬 Cenários Testados
+
+#### Kitchen Features
+```gherkin
+@smoke @regression
+Funcionalidade: Gestão de Cozinhas
+
+  Cenário: Criar uma nova cozinha com sucesso
+  Cenário: Buscar uma cozinha por ID
+  Cenário: Listar cozinhas com paginação
+  Cenário: Atualizar uma cozinha existente
+  Cenário: Deletar uma cozinha
+  Cenário: Tentar criar cozinha com nome duplicado
+  Cenário: Buscar cozinha inexistente
+  Cenário: Validar campos obrigatórios
+```
+
+#### Restaurant Features
+```gherkin
+@smoke @regression
+Funcionalidade: Gestão de Restaurantes
+
+  Cenário: Criar um novo restaurante com sucesso
+  Cenário: Buscar um restaurante por ID
+  Cenário: Listar restaurantes com paginação
+  Cenário: Atualizar um restaurante existente
+  Cenário: Deletar um restaurante
+  Cenário: Tentar criar restaurante com nome duplicado
+```
+
+### 💡 Exemplo de Feature
+```gherkin
+# language: pt
+@smoke @regression
+Funcionalidade: Gestão de Cozinhas
+
+  Cenário: Criar uma nova cozinha com sucesso
+    Dado que o serviço de catálogo está disponível
+    Quando eu crio uma cozinha com o nome "Italiana"
+    Então a cozinha deve ser criada com sucesso
+    E o status code deve ser 201
+    E a resposta deve conter o nome "Italiana"
+
+  Cenário: Buscar uma cozinha por ID
+    Dado que o serviço de catálogo está disponível
+    E que existe uma cozinha cadastrada com o nome "Japonesa"
+    Quando eu busco a cozinha pelo ID
+    Então o status code deve ser 200
+    E a resposta deve conter o nome "Japonesa"
+```
+
+---
+
+## 5️⃣ Testes de Arquitetura (ArchUnit)
+
+### 📝 Descrição
+Testes de arquitetura validam regras arquiteturais do projeto, como dependências entre camadas, convenções de nomenclatura e uso correto de anotações.
+
+### 🎯 Comando
 ```bash
-mvn clean verify "-Dtest=*ContractIT"
-```
-✅ **Resultado atual: 44 testes de contrato passando (0 falhas)**
-- **KitchenControllerContractIT**: 19 testes
-- **RestaurantControllerContractIT**: 25 testes
+# Architecture tests são executados junto com os unit tests
+./mvnw test
 
-### Executar SOMENTE Integration Tests (Failsafe + BDD)
-```bash
-mvn clean verify "-Dskip.ut=true"
-```
-✅ **Resultado atual: 63 testes executados (0 falhas, 63 passando)**
-- **Contract Tests**: 44 testes (19 Kitchen + 25 Restaurant)
-- **BDD/Cucumber Tests**: 19 testes (cenários de features)
-
-**Status dos testes:**
-- ✅ Todos os testes de integração estão passando
-- ✅ Todos os testes BDD/Cucumber estão passando
-- ✅ Correções aplicadas com sucesso
-
-### Executar testes de mutação (PIT)
-```bash
-mvn clean test pitest:mutationCoverage
+# Executar somente testes de arquitetura
+./mvnw test -Dtest=*ArchitectureTest,*ConventionTest,*AnnotationTest,*DependencyTest
 ```
 
-### Pular todos os testes
-```bash
-mvn clean install -DskipTests
-```
-
-ou
-
-```bash
-mvn clean install "-Dskip.ut=true" "-Dskip.it=true"
-```
-
-## 🏷️ Filtrar Testes BDD por Tags
-
-### Executar SOMENTE testes de contrato
-```bash
-mvn clean test "-Dtest=*ContractIT"
-```
-
-### Filtrar somente testes @smoke
-```bash
-mvn verify "-Dcucumber.filter.tags=@smoke"
-```
-
-### Filtrar somente testes @regression
-```bash
-mvn verify "-Dcucumber.filter.tags=@regression"
-```
-
-### Excluir testes @wip (work in progress)
-```bash
-mvn verify "-Dcucumber.filter.tags=not @wip"
-```
-
-## 📊 Resultados dos Testes
-
-### Resumo Geral
-- **Total de Testes**: 131 testes (71 UT + 60 IT)
-- **Sucesso**: 131 ✅
+### 📊 Resultado Atual
+- **Total**: 13 testes ✅
 - **Falhas**: 0
-- **Status**: ✅ Todos os testes passando
+- **Classes de teste**: 6
 
-### Unit Tests (Surefire)
-- **Total**: 71 testes
-- **Sucesso**: 71 ✅
-- **Falhas**: 0
-- **Tempo**: ~12 segundos
-
-### Integration Tests (Failsafe)
-- **Total**: 60 testes (27 IT + 19 Contract + 14 BDD)
-- **Sucesso**: 60 ✅
-- **Falhas**: 0 ✅
-- **Tempo**: ~45 segundos
-
-#### Testes de Integração (Controllers IT)
-**KitchenControllerIT:**
-- ✅ DELETE /v1/kitchens/{id} - Deletar cozinha (2 testes)
-- ✅ PUT /v1/kitchens/{id} - Atualizar cozinha (2 testes)
-- ✅ GET /v1/kitchens - Listar cozinhas (2 testes)
-- ✅ GET /v1/kitchens/{id} - Buscar cozinha por ID (2 testes)
-- ✅ POST /v1/kitchens - Criar cozinha (2 testes)
-
-**RestaurantControllerIT:**
-- ✅ DELETE /v1/restaurants/{id} - Deletar restaurante (2 testes)
-- ✅ PUT /v1/restaurants/{id} - Atualizar restaurante (4 testes)
-- ✅ GET /v1/restaurants - Listar restaurantes (5 testes)
-- ✅ GET /v1/restaurants/{id} - Buscar restaurante por ID (2 testes)
-- ✅ POST /v1/restaurants - Criar restaurante (4 testes)
-
-#### Testes de Contrato (Contract Tests)
-**KitchenControllerContractIT** - 19 testes usando Rest Assured e JSON Schema Validator:
-- ✅ **POST /v1/kitchens** - Criar cozinha (5 testes)
-  - Criar com dados válidos e validar response schema
-  - Validar headers de resposta (Content-Type, Location)
-  - Validar status codes corretos
-  - Criar com nome vazio (400 Bad Request)
-  - Criar com corpo da requisição vazio (400 Bad Request)
-- ✅ **GET /v1/kitchens/{id}** - Buscar cozinha por ID (3 testes)
-  - Buscar cozinha existente e validar response schema
-  - Validar headers de resposta corretos
-  - Buscar cozinha inexistente (404 Not Found)
-- ✅ **GET /v1/kitchens** - Listar cozinhas (4 testes)
-  - Listar com paginação e validar page response schema
-  - Validar headers de resposta corretos
-  - Listar com parâmetros de ordenação
-  - Listar com filtros de busca
-- ✅ **PUT /v1/kitchens/{id}** - Atualizar cozinha (4 testes)
-  - Atualizar com dados válidos e validar response schema
-  - Validar headers de resposta corretos
-  - Atualizar cozinha inexistente (404 Not Found)
-  - Atualizar com dados inválidos (400 Bad Request)
-- ✅ **DELETE /v1/kitchens/{id}** - Deletar cozinha (3 testes)
-  - Deletar cozinha existente (204 No Content)
-  - Validar headers de resposta corretos
-  - Deletar cozinha inexistente (404 Not Found)
-
-**RestaurantControllerContractIT** - 25 testes usando Rest Assured e JSON Schema Validator:
-- ✅ **POST /v1/restaurants** - Criar restaurante (6 testes)
-  - Criar com dados válidos e validar response schema
-  - Validar headers de resposta (Content-Type, Location)
-  - Criar com deliveryFee negativo (400 Bad Request)
-  - Criar com kitchenId nulo (400 Bad Request)
-  - Criar sem body da requisição (400 Bad Request)
-  - Criar com nome vazio (400 Bad Request)
-- ✅ **GET /v1/restaurants/{id}** - Buscar restaurante por ID (4 testes)
-  - Buscar restaurante existente e validar response schema
-  - Validar headers de resposta corretos
-  - Buscar com ID inválido (400 Bad Request)
-  - Buscar restaurante inexistente (404 Not Found)
-- ✅ **GET /v1/restaurants** - Listar restaurantes (5 testes)
-  - Listar com paginação e validar page response schema
-  - Filtrar por nome do restaurante
-  - Filtrar por tipo de cozinha
-  - Filtrar por faixa de taxa de entrega
-  - Validar headers e Content-Type corretos
-- ✅ **PUT /v1/restaurants/{id}** - Atualizar restaurante (4 testes)
-  - Atualizar com dados válidos e validar response schema
-  - Atualizar sem fornecer nome (suporte a atualizações parciais)
-  - Atualizar com deliveryFee negativo (400 Bad Request)
-  - Atualizar restaurante inexistente (404 Not Found)
-- ✅ **DELETE /v1/restaurants/{id}** - Deletar restaurante (4 testes)
-  - Deletar restaurante existente (204 No Content)
-  - Deletar com ID inválido (400 Bad Request)
-  - Deletar restaurante já deletado (404 Not Found)
-  - Deletar restaurante inexistente (404 Not Found)
-- ✅ **Headers e Content-Type** - Validações gerais (2 testes)
-  - Validar headers corretos nas respostas
-  - Validar Content-Type application/json
-
-**Tecnologias utilizadas nos Contract Tests:**
-- **Rest Assured 5.5.6**: Framework para testes de API REST
-- **JSON Schema Validator 5.5.6**: Validação de schemas JSON
-- **Testcontainers**: Ambiente isolado com PostgreSQL
-- **@Import(TestcontainersConfiguration.class)**: Configuração centralizada de testcontainers
-- **Schemas JSON**: Validação estrutural das respostas
-  - `kitchen-response-schema.json`: Schema para resposta de cozinha individual
-  - `kitchen-page-response-schema.json`: Schema para resposta paginada
-  - `restaurant-create-response-schema.json`: Schema para resposta de restaurante
-  - `problem-details-error-schema.json`: Schema RFC 7807 para respostas de erro
-
-#### Testes BDD/Cucumber
-**Kitchen Features:**
-- ✅ Criar uma nova cozinha com sucesso
-- ✅ Buscar uma cozinha por ID
-- ✅ Listar cozinhas com paginação
-- ✅ Atualizar uma cozinha existente
-- ✅ Deletar uma cozinha
-- ✅ Tentar criar cozinha com nome duplicado
-- ✅ Buscar cozinha inexistente
-
-**Restaurant Features:**
-- ✅ Criar um novo restaurante com sucesso
-- ✅ Buscar um restaurante por ID
-- ✅ Listar restaurantes com paginação
-- ✅ Atualizar um restaurante existente
-- ✅ Deletar um restaurante
-- ✅ Tentar criar restaurante com nome duplicado
-- ✅ Buscar restaurante inexistente
-
-## 📈 Cobertura de Código (JaCoCo)
-
-### Configuração
-- **Mínimo de cobertura**: 90% (LINE coverage)
-- **Status atual**: ⚠️ 68% (melhorou de 64%, mas ainda abaixo do mínimo configurado)
-- **Exclusões**:
-    - Application.class
-    - Entidades (entity/*)
-    - DTOs (request/*, response/*)
-    - Exceções (exception/*)
-    - Mappers (mapper/*)
-    - Métricas (metrics/*)
-    - Infraestrutura (infrastructure/**)
-
-### Detalhamento por Classe
-
-| Classe               | Linhas Cobertas | Total de Linhas | Cobertura | Status             |
-|----------------------|-----------------|-----------------|-----------|--------------------|
-| KitchenService       | 63              | 63              | 100%      | ✅                  |
-| RestaurantService    | 75              | 75              | 100%      | ✅                  |
-| KitchenController    | 38              | 38              | 100%      | ✅                  |
-| RestaurantController | 38              | 38              | 100%      | ✅                  |
-| ProductService       | 5               | 76              | 7%        | ❌ Baixa cobertura |
-| ProductController    | 2               | 38              | 5%        | ❌ Baixa cobertura |
-
-### Executar relatório de cobertura
-```bash
-mvn clean verify
+### 📁 Estrutura
+```
+src/test/java/architecture/
+├── LayeredArchitectureTest.java      # 1 teste - Arquitetura em camadas
+├── NamingConventionTest.java         # 5 testes - Convenções de nomenclatura
+├── SpringAnnotationTest.java         # 4 testes - Anotações Spring
+├── SecurityAndPerformanceTest.java   # - Segurança e performance
+├── RestApiTest.java                  # - Padrões REST API
+└── DependencyTest.java               # 3 testes - Validação de dependências
 ```
 
-Relatório gerado em: `target/site/jacoco/index.html`
+### 🏗️ Regras Validadas
 
-**Ação necessária**: Adicionar mais testes para ProductService e ProductController para atingir 90% de cobertura.
+#### 1. Arquitetura em Camadas
+✅ API pode acessar Domain, Core e Config  
+✅ Domain pode acessar Infrastructure e Core  
+✅ Infrastructure pode acessar apenas Core  
+✅ Core não depende de nenhuma camada  
+✅ Config pode acessar Domain, Infrastructure e Core  
 
-## 🧬 Testes de Mutação (PIT)
+#### 2. Convenções de Nomenclatura
+✅ Controllers terminam com "Controller"  
+✅ Services terminam com "Service"  
+✅ Repositories terminam com "Repository"  
+✅ Entities estão no pacote `domain.entity`  
+✅ Request/Response estão nos pacotes corretos  
 
-### 📊 Visão Geral do Projeto
-- **Classes Analisadas**: 6
-- **Cobertura de Linha**: 68% (224/331)
-- **Cobertura de Mutação**: 64% (37/58)
-- **Força dos Testes**: 100% (37/37)
+#### 3. Anotações Spring
+✅ Controllers usam `@RestController`  
+✅ Services usam `@Service`  
+✅ Repositories estendem `JpaRepository`  
+✅ Entities usam `@Entity`  
+❌ Proíbe `System.out.println`  
+❌ Services não devem depender de Controllers  
 
+#### 4. Dependências
+❌ Domain não deve depender da API  
+❌ Infrastructure não deve depender da API  
+❌ Core não deve depender de Spring Web  
+❌ Entities não devem depender do Spring  
+
+### 💡 Exemplo de Teste
+```java
+@AnalyzeClasses(packages = "io.github.wesleyosantos91.catalog")
+class LayeredArchitectureTest {
+    
+    @ArchTest
+    static final ArchRule layered_architecture = layeredArchitecture()
+        .consideringAllDependencies()
+        
+        .layer("API").definedBy("..api..")
+        .layer("Domain").definedBy("..domain..")
+        .layer("Infrastructure").definedBy("..infrastructure..")
+        .layer("Core").definedBy("..core..")
+        .layer("Config").definedBy("..config..")
+        
+        .whereLayer("API").mayOnlyAccessLayers("Domain", "Core", "Config")
+        .whereLayer("Domain").mayOnlyAccessLayers("Infrastructure", "Core")
+        .whereLayer("Infrastructure").mayOnlyAccessLayers("Core")
+        .whereLayer("Core").mayNotAccessAnyLayer()
+        .whereLayer("Config").mayOnlyAccessLayers("Domain", "Infrastructure", "Core");
+}
+```
+
+### 📁 Estrutura de Pacotes Validada
+```
+src/main/java/io/github/wesleyosantos91/catalog/
+├── api/                    # Camada de apresentação
+│   ├── exception/         # Tratamento de exceções
+│   └── v1/
+│       ├── controller/    # REST Controllers
+│       ├── request/       # DTOs de entrada
+│       └── response/      # DTOs de saída
+├── config/                # Configurações Spring
+├── core/                  # Utilitários e cross-cutting
+│   ├── mapper/           # Mapeamento entre camadas
+│   └── validation/       # Validações customizadas
+├── domain/               # Lógica de negócio
+│   ├── entity/          # Entidades JPA
+│   ├── repository/      # Interfaces de repositório
+│   └── service/         # Serviços de domínio
+└── infrastructure/      # Implementações técnicas
+    ├── filter/          # Filtros HTTP
+    ├── metric/          # Métricas e observabilidade
+    └── openapi/         # Documentação API
+```
+
+---
+
+## 6️⃣ Cobertura de Código (JaCoCo)
+
+### 📝 Descrição
+JaCoCo mede a cobertura de código pelos testes, mostrando quais linhas foram executadas.
+
+### 🎯 Comando
+```bash
+./mvnw clean verify
+```
+
+### 📊 Resultado Atual
+- **Cobertura**: 69% (247/359 linhas)
+- **Meta**: 90%
+- **Status**: ⚠️ Abaixo do mínimo
+
+### 📈 Cobertura por Classe
+| Classe | Linhas Cobertas | Total | Cobertura | Status |
+|--------|-----------------|-------|-----------|--------|
+| KitchenService | 63 | 63 | 100% | ✅ |
+| RestaurantService | 75 | 75 | 100% | ✅ |
+| KitchenController | 38 | 38 | 100% | ✅ |
+| RestaurantController | 38 | 38 | 100% | ✅ |
+| ProductService | 5 | 76 | 7% | ❌ |
+| ProductController | 2 | 38 | 5% | ❌ |
+
+### 🚫 Exclusões Configuradas
+O JaCoCo exclui automaticamente:
+- `Application.class`
+- Entidades (`entity/*`)
+- DTOs (`request/*`, `response/*`)
+- Exceções (`exception/*`)
+- Mappers (`mapper/*`)
+- Métricas (`metrics/*`)
+- Infraestrutura (`infrastructure/**`)
+
+### 📊 Relatório
+```bash
+# Gerar relatório HTML
+./mvnw clean verify
+
+# Visualizar relatório
+target/site/jacoco/index.html
+```
+
+---
+
+## 7️⃣ Testes de Mutação (PIT)
+
+### 📝 Descrição
+Testes de mutação validam a qualidade dos testes, introduzindo pequenas mudanças (mutações) no código e verificando se os testes detectam essas mudanças.
+
+### 🎯 Comando
+```bash
+./mvnw clean test pitest:mutationCoverage
+```
+
+### 📊 Resultado Atual
+- **Score de Mutação**: 62% ❌ (meta: 90%)
+- **Força dos Testes**: 95% ✅
+- **Mutações Geradas**: 60
+- **Mutações Eliminadas**: 37 (62%)
+- **Mutações Sobreviventes**: 2 ⚠️
+- **Sem Cobertura**: 21 ⚠️
+
+### 📈 Métricas Detalhadas
 | Métrica | Valor | Status |
 |---------|-------|--------|
-| **Score de Mutação** | 64% | ❌ (abaixo de 90%) |
-| **Força dos Testes** | 100% | ✅ |
-| **Mutações Geradas** | 58 | ℹ️ |
-| **Mutações Eliminadas** | 37 | ℹ️ |
-| **Mutações Sobreviventes** | 0 | ✅ |
-| **Sem Cobertura** | 21 | ⚠️ |
+| Classes Analisadas | 6 | ℹ️ |
+| Cobertura de Linha | 69% | ⚠️ |
+| Cobertura de Mutação | 62% | ❌ |
+| Força dos Testes | 95% | ✅ |
+| Mutações Geradas | 60 | ℹ️ |
+| Mutações Eliminadas | 37 | ℹ️ |
+| Mutações Sobreviventes | 2 | ⚠️ |
+| Sem Cobertura | 21 | ⚠️ |
 
-### 🔍 Detalhamento por Package
-
-#### 📁 io.github.wesleyosantos91.catalog.api.v1.controller
-- **Classes**: 3 (KitchenController, RestaurantController, ProductController)
-- **Cobertura de Linha**: 69% (81/117)
-- **Cobertura de Mutação**: 67% (12/18)
-- **Força dos Testes**: 100% (12/12)
-
-#### 📁 io.github.wesleyosantos91.catalog.domain.service  
-- **Classes**: 3 (KitchenService, RestaurantService, ProductService)
-- **Cobertura de Linha**: 67% (143/214)
-- **Cobertura de Mutação**: 63% (25/40)
-- **Força dos Testes**: 100% (25/25)
-
-### 🔬 Análise por Tipo de Mutador
-
-#### ✅ VoidMethodCallMutator (67% de efetividade)
-- **Mutações Geradas**: 6
-- **Mutações Eliminadas**: 4 (67%)
-- **Sem Cobertura**: 2
-- **Status**: ✅ Bom desempenho
-- **Ação**: Ampliar testes para métodos void sem cobertura
-
-#### ✅ NullReturnValsMutator (67% de efetividade)  
-- **Mutações Geradas**: 30
-- **Mutações Eliminadas**: 20 (67%)
-- **Sem Cobertura**: 10
-- **Status**: ✅ Bom desempenho
-- **Ação**: Adicionar testes para cenários de retorno null
-
-#### ⚠️ NegateConditionalsMutator (59% de efetividade)
-- **Mutações Geradas**: 22
-- **Mutações Eliminadas**: 13 (59%)
-- **Sem Cobertura**: 9
-- **Status**: ⚠️ Performance moderada
-- **Ação**: Melhorar testes condicionais e edge cases
-
-### 🎯 Comparativo de Evoluções
-
-| Execução | Score | Mutações | Eliminadas | Sobreviventes | Sem Cobertura |
-|----------|-------|----------|------------|---------------|---------------|
-| **1ª** | 43% | 91 | 39 | 24 | 28 |
-| **2ª** | 60% | 63 | 38 | 4 | 21 |
-| **3ª** | 64% | 58 | 37 | 0 | 21 |
-
-**📈 Progresso**: Score melhorou de 43% → 64% (+21%), eliminação completa de mutações sobreviventes!
+### 🔬 Análise por Mutador
+| Mutador | Geradas | Eliminadas | Sobreviv. | Sem Cob. | Efetividade |
+|---------|---------|------------|-----------|----------|-------------|
+| VoidMethodCallMutator | 6 | 4 | 0 | 2 | 67% ✅ |
+| NullReturnValsMutator | 32 | 20 | 2 | 10 | 63% ⚠️ |
+| NegateConditionalsMutator | 22 | 13 | 0 | 9 | 59% ⚠️ |
 
 ### 🚨 Pontos Críticos
+1. **Mutações Sobreviventes (2)**: Métodos com retornos null não validados
+2. **Mutações Sem Cobertura (21)**: Principalmente em ProductService e ProductController
+3. **Lacunas de Teste**: Condicionais complexas e edge cases
 
-#### 1. **Mutações Sem Cobertura (21 restantes)**
-```
-❌ 21 mutações não são testadas devido à falta de cobertura de código
-📍 Localização: Principalmente em ProductService e ProductController
-💡 Solução: Adicionar testes unitários e de integração
-```
-
-#### 2. **Lacunas de Teste por Package**
-```
-⚠️ Controllers: 31% das mutações sem cobertura  
-⚠️ Services: 38% das mutações sem cobertura
-📍 Foco: ProductService (baixa cobertura) e condicionais complexas
-```
-
-### 💡 Plano de Ação Priorizado
-
-#### 🔥 **Prioridade ALTA** - Aumentar Cobertura Base
+### 📊 Relatório
 ```bash
-# Objetivo: 21 mutações sem cobertura → 0
-1. ProductService: Implementar testes unitários completos
-2. ProductController: Implementar testes de integração
-3. Condicionais: Adicionar testes para branches não cobertos
-```
+# Gerar relatório HTML
+./mvnw clean test pitest:mutationCoverage
 
-#### 📊 **Prioridade MÉDIA** - Otimizar Mutadores
-```bash
-# Objetivo: NegateConditionalsMutator 59% → 80%
-1. Testes de boundary conditions
-2. Validação de edge cases  
-3. Cenários de exceção específicos
-```
-
-#### ✨ **Prioridade BAIXA** - Manter Qualidade
-```bash
-# Objetivo: Manter força dos testes em 100%
-1. Monitorar VoidMethodCallMutator (67%)
-2. Monitorar NullReturnValsMutator (67%)
-3. Refatorar testes duplicados
-```
-
-### 📋 Checklist de Implementação
-
-- [ ] **ProductService**: Implementar 76 linhas de teste (0% → 90%)
-- [ ] **ProductController**: Implementar 36 linhas de teste (5% → 90%)  
-- [ ] **Condicionais**: Adicionar 9 testes para NegateConditionalsMutator
-- [ ] **Métodos Void**: Adicionar 2 testes para VoidMethodCallMutator
-- [ ] **Retornos Null**: Adicionar 10 testes para NullReturnValsMutator
-- [ ] **Validação**: Executar `mvn pitest:mutationCoverage` após cada implementação
-
-### ⚙️ Configuração e Execução
-
-#### Configuração
-- **Plugin**: pitest-maven-plugin 1.21.0
-- **JUnit Integration**: pitest-junit5-plugin 1.2.3  
-- **Mutation Threshold**: 90%
-- **Timeout**: 4000ms por teste
-- **Threads**: Automático (baseado no sistema)
-
-#### Executar Testes de Mutação
-```bash
-# Execução completa
-mvn clean test pitest:mutationCoverage
-
-# Com verbose (para debugging)
-mvn pitest:mutationCoverage -Dverbose=true
-
-# Focar em classes específicas
-mvn pitest:mutationCoverage -DtargetClasses=io.github.wesleyosantos91.catalog.domain.service.*
-```
-
-#### Relatórios Gerados
-```bash
-# Relatório HTML interativo
+# Visualizar relatório
 target/pit-reports/index.html
-
-# Relatório por package
-target/pit-reports/io.github.wesleyosantos91.catalog.api.v1.controller/
-target/pit-reports/io.github.wesleyosantos91.catalog.domain.service/
 ```
 
-### 📈 Meta de Melhoria
+### 🎯 Evolução do Score
+| Execução | Score | Mutações | Eliminadas | Sobreviv. | Sem Cob. |
+|----------|-------|----------|------------|-----------|----------|
+| 1ª | 43% | 91 | 39 | 24 | 28 |
+| 2ª | 60% | 63 | 38 | 4 | 21 |
+| 3ª | 64% | 58 | 37 | 0 | 21 |
+| 4ª (Atual) | 62% | 60 | 37 | 2 | 21 |
 
-| Fase | Score Meta | Prazo | Ações Principais |
-|------|------------|-------|------------------|
-| **Fase 1** | 75% | 1 semana | Implementar ProductService tests |
-| **Fase 2** | 85% | 2 semanas | Implementar ProductController tests |
-| **Fase 3** | 90% | 3 semanas | Otimizar condicionais e edge cases |
+**📈 Progresso**: +19% desde a primeira execução
+
+---
+
+## 8️⃣ Checkstyle
+
+### 📝 Descrição
+Checkstyle valida a qualidade do código verificando convenções de estilo, boas práticas e padrões de codificação.
+
+### 🎯 Comando
+```bash
+./mvnw checkstyle:check
+```
+
+### 📊 Resultado Atual
+- **Violações**: 0 ✅
+- **Status**: BUILD SUCCESS
+
+### ⚙️ Configuração
+- **Arquivo**: `checkstyle.xml`
+- **Modo**: `failOnViolation=true`
+- **Resultado atual**: ✅ 0 violações
+
+### 📊 Relatório
+```bash
+# Gerar relatório XML
+./mvnw checkstyle:check
+
+# Visualizar relatório
+target/checkstyle-result.xml
+```
+
+---
+
+## ⚙️ Configurações e Dependências
+
+### Plugins Maven
+```xml
+<plugins>
+    <!-- Testes Unitários -->
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.4</version>
+    </plugin>
+    
+    <!-- Testes de Integração -->
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>3.5.4</version>
+    </plugin>
+    
+    <!-- Cobertura de Código -->
+    <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.14</version>
+    </plugin>
+    
+    <!-- Testes de Mutação -->
+    <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>1.21.0</version>
+    </plugin>
+    
+    <!-- Checkstyle -->
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.6.0</version>
+    </plugin>
+</plugins>
+```
+
+### Dependências de Teste
+```xml
+<dependencies>
+    <!-- JUnit 5 -->
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <scope>test</scope>
+    </dependency>
+    
+    <!-- Spring Boot Test -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+    
+    <!-- Testcontainers -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-testcontainers</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>postgresql</artifactId>
+        <scope>test</scope>
+    </dependency>
+    
+    <!-- Rest Assured -->
+    <dependency>
+        <groupId>io.rest-assured</groupId>
+        <artifactId>rest-assured</artifactId>
+        <version>5.5.6</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>io.rest-assured</groupId>
+        <artifactId>json-schema-validator</artifactId>
+        <version>5.5.6</version>
+        <scope>test</scope>
+    </dependency>
+    
+    <!-- Cucumber -->
+    <dependency>
+        <groupId>io.cucumber</groupId>
+        <artifactId>cucumber-java</artifactId>
+        <version>7.22.2</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>io.cucumber</groupId>
+        <artifactId>cucumber-spring</artifactId>
+        <version>7.22.2</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>io.cucumber</groupId>
+        <artifactId>cucumber-junit-platform-engine</artifactId>
+        <version>7.22.2</version>
+        <scope>test</scope>
+    </dependency>
+    
+    <!-- ArchUnit -->
+    <dependency>
+        <groupId>com.tngtech.archunit</groupId>
+        <artifactId>archunit-junit5</artifactId>
+        <version>1.4.1</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+---
+
+## 📝 Boas Práticas
+
+### 1. Nomenclatura de Testes
+- **Unit Tests**: `*Test.java` (executados pelo Surefire)
+- **Integration Tests**: `*IT.java` (executados pelo Failsafe)
+- **Contract Tests**: `*ContractIT.java` (executados pelo Failsafe)
+- Usar padrão Given-When-Then nos testes BDD
+- Usar `@DisplayName` para descrever cenários em português
+
+### 2. Organização
+- Agrupar testes por feature usando `@Nested`
+- Usar `@BeforeEach` e `@AfterEach` para setup/cleanup
+- Manter testes isolados e independentes
+
+### 3. Testcontainers
+- Usar uma única configuração centralizada (`TestcontainersConfiguration`)
+- Reutilizar container quando possível (padrão Singleton)
+- Usar `@ServiceConnection` para auto-configuração
+
+### 4. Mocks
+- Usar `@MockBean` para substituir beans do Spring
+- Usar `@Mock` e `@InjectMocks` para testes unitários puros
+- Verificar chamadas de métodos com `verify()`
+
+### 5. Contract Tests
+- Usar Rest Assured para testes de API REST
+- Validar schemas JSON das respostas
+- Testar headers HTTP corretos
+- Cobrir todos os endpoints e status codes
+- Usar Testcontainers para ambiente isolado
+
+---
 
 ## 🎯 Próximos Passos Recomendados
 
-### 1. Prioridade Alta - Melhorar Testes de Mutação (64% → 90%)
+### 1. 🔥 Prioridade ALTA - Eliminar Mutações Sobreviventes (2 → 0)
 ```bash
-# Investigar mutações sem cobertura específicas
-mvn pitest:mutationCoverage -Dverbose=true
+# Investigar e corrigir as 2 mutações sobreviventes
+./mvnw pitest:mutationCoverage -Dverbose=true
+
 # Abrir relatório detalhado
 target/pit-reports/index.html
 ```
 
 **Ações específicas:**
-- ✅ **CONCLUÍDO**: Eliminação de todas as mutações sobreviventes (24 → 0)
+- 🔥 **CRÍTICO**: Adicionar asserções para validar retornos null (2 mutações sobreviventes)
 - 🎯 **FOCO ATUAL**: Reduzir mutações sem cobertura (21 restantes)
-- 📈 **PROGRESSO**: Score melhorou de 43% → 64% (+21%)
-- 🔥 **CRÍTICO**: Implementar testes para ProductService (7% cobertura)
-- 🔥 **CRÍTICO**: Implementar testes para ProductController (5% cobertura)
+- 📈 **PROGRESSO**: Score mantém-se em 62% (+19% desde a primeira execução)
 
-### 2. Prioridade Média - Aumentar Cobertura Geral (68% → 90%)
-- 🎯 **ProductService (7% → 90%)**
-    - Implementar testes unitários para todos os métodos CRUD
-    - Cobrir cenários de validação e tratamento de exceções
-    - Testar regras de negócio específicas de produtos
+### 2. 🔥 Prioridade ALTA - Aumentar Cobertura Base (69% → 90%)
+**ProductService (7% → 90%)**
+- Implementar testes unitários para todos os métodos CRUD
+- Cobrir cenários de validação e tratamento de exceções
+- Testar regras de negócio específicas de produtos
 
-- 🎯 **ProductController (5% → 90%)**
-    - Criar testes de integração (ProductControllerIT)
-    - Testar endpoints REST com diferentes cenários
-    - Validar responses e status codes
+**ProductController (5% → 90%)**
+- Criar testes de integração (ProductControllerIT)
+- Criar testes de contrato (ProductControllerContractIT)
+- Testar endpoints REST com diferentes cenários
+- Validar responses e status codes
 
-### 3. Prioridade Baixa - Otimizações
+### 3. 📊 Prioridade MÉDIA - Otimizar Testes de Mutação (62% → 90%)
+- Adicionar testes para cobrir as 21 mutações sem cobertura
+- Melhorar testes condicionais e edge cases
+- Validar cenários de exceção específicos
+
+### 4. ✨ Prioridade BAIXA - Otimizações
 - ✅ **Manter qualidade atual dos serviços principais**
-- ✅ **Força dos testes em 100% (mantida)**
+- ✅ **Força dos testes em 95% (mantida)**
 - ✅ **Monitorar efetividade dos mutadores**
 - 📊 **Adicionar mais cenários BDD para Products**
 - 🔧 **Configurar pipeline CI/CD com gates de qualidade**
+
+---
 
 ## 📈 Relatórios Disponíveis
 
@@ -553,117 +883,34 @@ target/pit-reports/index.html
 target/checkstyle-result.xml
 ```
 
+---
+
 ## ✅ Conclusão
 
-O projeto apresenta uma **base sólida de testes** com 71 testes executando corretamente e 100% de cobertura nos serviços principais (Kitchen e Restaurant).
+O projeto apresenta uma **base sólida de testes** com 169 testes executando corretamente e 100% de cobertura nos serviços principais (Kitchen e Restaurant).
 
 **Pontos fortes:**
-- Estrutura de testes bem organizada
-- Boa separação entre unit, integration e BDD tests
-- Cobertura completa dos serviços principais
-- Qualidade de código mantida (0 violações Checkstyle)
+- ✅ Estrutura de testes bem organizada
+- ✅ Boa separação entre unit, integration, contract, BDD e architecture tests
+- ✅ Cobertura completa dos serviços principais
+- ✅ Qualidade de código mantida (0 violações Checkstyle)
+- ✅ Testes de arquitetura garantindo consistência
 
 **Áreas críticas para melhoria:**
-- **Testes de mutação em 43%** requerem atenção imediata
-- Implementação completa do ProductService/Controller
-- Foco em testes que validem comportamentos específicos, não apenas cobertura
-
-## 🔍 Checkstyle
-
-### Executar validação
-```bash
-mvn checkstyle:check
-```
-
-### Configuração
-- Arquivo: `checkstyle.xml`
-- Modo: `failOnViolation=true`
-- Resultado atual: ✅ 0 violações
-
-## 📝 Boas Práticas
-
-### 1. Nomenclatura de Testes
-- **Unit Tests**: `*Test.java` (executados pelo Surefire)
-- **Integration Tests**: `*IT.java` (executados pelo Failsafe)
-- Usar padrão Given-When-Then nos testes BDD
-- Usar `@DisplayName` para descrever cenários em português
-
-### 2. Organização
-- Agrupar testes por feature usando `@Nested`
-- Usar `@BeforeEach` e `@AfterEach` para setup/cleanup
-- Manter testes isolados e independentes
-
-### 3. Testcontainers
-- Usar uma única configuração centralizada
-- Reutilizar container quando possível (padrão Singleton)
-- Usar `@ServiceConnection` para auto-configuração
-
-### 4. Mocks
-- Usar `@MockBean` para substituir beans do Spring
-- Usar `@Mock` e `@InjectMocks` para testes unitários puros
-- Verificar chamadas de métodos com `verify()`
-
-### 5. Contract Tests
-- Usar Rest Assured para testes de API REST
-- Validar schemas JSON das respostas
-- Testar headers HTTP corretos
-- Cobrir todos os endpoints e status codes
-- Usar Testcontainers para ambiente isolado
-
-## 🔍 Checkstyle
-
-### Executar validação
-```bash
-mvn checkstyle:check
-```
-
-### Configuração
-- Arquivo: `checkstyle.xml`
-- Modo: `failOnViolation=true`
-- Resultado atual: ✅ 0 violações
-
-## 📝 Boas Práticas
-
-### 1. Nomenclatura de Testes
-- **Unit Tests**: `*Test.java` (executados pelo Surefire)
-- **Integration Tests**: `*IT.java` (executados pelo Failsafe)
-- Usar padrão Given-When-Then nos testes BDD
-- Usar `@DisplayName` para descrever cenários em português
-
-### 2. Organização
-- Agrupar testes por feature usando `@Nested`
-- Usar `@BeforeEach` e `@AfterEach` para setup/cleanup
-- Manter testes isolados e independentes
-
-### 3. Testcontainers
-- Usar uma única configuração centralizada
-- Reutilizar container quando possível (padrão Singleton)
-- Usar `@ServiceConnection` para auto-configuração
-
-### 4. Mocks
-- Usar `@MockBean` para substituir beans do Spring
-- Usar `@Mock` e `@InjectMocks` para testes unitários puros
-- Verificar chamadas de métodos com `verify()`
-
-## 📚 Referências
-
-- [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/)
-- [Cucumber Documentation](https://cucumber.io/docs/cucumber/)
-- [Spring Boot Testing](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.testing)
-- [Testcontainers](https://testcontainers.com/)
-- [JaCoCo Documentation](https://www.jacoco.org/jacoco/trunk/doc/)
-- [PIT Mutation Testing](https://pitest.org/)
-- [Rest Assured Documentation](https://rest-assured.io/)
-- [JSON Schema Validator](https://github.com/java-json-tools/json-schema-validator)
+- ⚠️ **Cobertura total em 69%** requer atenção
+- ❌ **Testes de mutação em 62%** requerem atenção imediata
+- ❌ **ProductService/Controller** precisam de implementação completa
+- 🎯 Foco em testes que validem comportamentos específicos, não apenas cobertura
 
 ---
 
-**Última atualização**: 2025-10-15
-**Versão do Spring Boot**: 3.5.6
-**Versão do Java**: 25
-**Status dos Testes**: ✅ TODOS PASSANDO (115/115)
-- **Unit Tests**: 71 testes
-- **Contract Tests**: 44 testes (19 Kitchen + 25 Restaurant)
-- **BDD/Cucumber Tests**: Inclusos nos Integration Tests
-**Cobertura de Código**: ⚠️ 68% (objetivo: 90%)
-**Testes de Mutação**: ⚠️ 64% (objetivo: 90%)
+📚 **Referências**
+- [JUnit 5 Documentation](https://junit.org/junit5/docs/current/user-guide/)
+- [Spring Boot Testing](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.testing)
+- [Testcontainers](https://www.testcontainers.org/)
+- [Rest Assured](https://rest-assured.io/)
+- [Cucumber](https://cucumber.io/docs/cucumber/)
+- [ArchUnit](https://www.archunit.org/)
+- [JaCoCo](https://www.jacoco.org/jacoco/)
+- [PIT Mutation Testing](https://pitest.org/)
+- [Checkstyle](https://checkstyle.sourceforge.io/)

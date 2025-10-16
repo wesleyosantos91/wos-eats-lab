@@ -15,16 +15,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantRequest;
 import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
 import io.github.wesleyosantos91.catalog.domain.entity.RestaurantEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
+import io.github.wesleyosantos91.catalog.domain.model.RestaurantModel;
+import io.github.wesleyosantos91.catalog.core.mapper.RestaurantMapper;
 import io.github.wesleyosantos91.catalog.domain.service.RestaurantService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -92,7 +94,7 @@ class RestaurantControllerTest {
         @Test
         @DisplayName("Deve criar um restaurante com sucesso e retornar 201")
         void deveCriarRestauranteComSucesso() throws Exception {
-            when(restaurantService.create(any(RestaurantRequest.class))).thenReturn(restaurantEntity);
+            when(restaurantService.create(any(RestaurantModel.class))).thenReturn(RestaurantMapper.MAPPER.toModel(restaurantEntity));
 
             mockMvc.perform(post("/v1/restaurants")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -100,18 +102,18 @@ class RestaurantControllerTest {
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.id").value(restaurantId.toString()))
                     .andExpect(jsonPath("$.name").value("Restaurante Italiano"))
-                    .andExpect(jsonPath("$.kitchen_id").value(kitchenId.toString()))
-                    .andExpect(jsonPath("$.kitchen_name").value("Italiana"))
+                    .andExpect(jsonPath("$.kitchen.id").value(kitchenId.toString()))
+                    .andExpect(jsonPath("$.kitchen.name").value("Italiana"))
                     .andExpect(jsonPath("$.active").value(true))
                     .andExpect(jsonPath("$.delivery_fee").value(10.00));
 
-            verify(restaurantService, times(1)).create(any(RestaurantRequest.class));
+            verify(restaurantService, times(1)).create(any(RestaurantModel.class));
         }
 
         @Test
         @DisplayName("Deve retornar 409 quando tentar criar restaurante com nome duplicado")
         void deveRetornar409QuandoNomeDuplicado() throws Exception {
-            when(restaurantService.create(any(RestaurantRequest.class)))
+            when(restaurantService.create(any(RestaurantModel.class)))
                     .thenThrow(new ResourceAlreadyExistsException("Restaurant", "name", "Restaurante Italiano"));
 
             mockMvc.perform(post("/v1/restaurants")
@@ -119,13 +121,13 @@ class RestaurantControllerTest {
                             .content(objectMapper.writeValueAsString(restaurantRequest)))
                     .andExpect(status().isConflict());
 
-            verify(restaurantService, times(1)).create(any(RestaurantRequest.class));
+            verify(restaurantService, times(1)).create(any(RestaurantModel.class));
         }
 
         @Test
         @DisplayName("Deve retornar 404 quando cozinha não existir")
         void deveRetornar404QuandoCozinhaNaoExistir() throws Exception {
-            when(restaurantService.create(any(RestaurantRequest.class)))
+            when(restaurantService.create(any(RestaurantModel.class)))
                     .thenThrow(new ResourceNotFoundException("Kitchen", kitchenId.toString()));
 
             mockMvc.perform(post("/v1/restaurants")
@@ -133,7 +135,7 @@ class RestaurantControllerTest {
                             .content(objectMapper.writeValueAsString(restaurantRequest)))
                     .andExpect(status().isNotFound());
 
-            verify(restaurantService, times(1)).create(any(RestaurantRequest.class));
+            verify(restaurantService, times(1)).create(any(RestaurantModel.class));
         }
     }
 
@@ -144,14 +146,14 @@ class RestaurantControllerTest {
         @Test
         @DisplayName("Deve retornar um restaurante pelo ID com sucesso")
         void deveRetornarRestaurantePorId() throws Exception {
-            when(restaurantService.findById(restaurantId)).thenReturn(restaurantEntity);
+            when(restaurantService.findById(restaurantId)).thenReturn(RestaurantMapper.MAPPER.toModel(restaurantEntity));
 
             mockMvc.perform(get("/v1/restaurants/{id}", restaurantId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(restaurantId.toString()))
                     .andExpect(jsonPath("$.name").value("Restaurante Italiano"))
-                    .andExpect(jsonPath("$.kitchen_id").value(kitchenId.toString()))
-                    .andExpect(jsonPath("$.kitchen_name").value("Italiana"))
+                    .andExpect(jsonPath("$.kitchen.id").value(kitchenId.toString()))
+                    .andExpect(jsonPath("$.kitchen.name").value("Italiana"))
                     .andExpect(jsonPath("$.active").value(true))
                     .andExpect(jsonPath("$.delivery_fee").value(10.00));
 
@@ -181,9 +183,13 @@ class RestaurantControllerTest {
             Pageable pageable = PageRequest.of(0, 10);
             var restaurants = new ArrayList<RestaurantEntity>();
             restaurants.add(restaurantEntity);
-            var page = new PageImpl<>(restaurants, pageable, 1);
+            var page = new PageImpl<>(
+                restaurants.stream().map(RestaurantMapper.MAPPER::toModel).toList(),
+                pageable,
+                1
+            );
 
-            when(restaurantService.search(any(RestaurantQueryRequest.class), any(Pageable.class)))
+            when(restaurantService.search(any(RestaurantModel.class), any(Pageable.class)))
                     .thenReturn(page);
 
             mockMvc.perform(get("/v1/restaurants")
@@ -194,7 +200,7 @@ class RestaurantControllerTest {
                     .andExpect(jsonPath("$.content[0].id").value(restaurantId.toString()))
                     .andExpect(jsonPath("$.content[0].name").value("Restaurante Italiano"));
 
-            verify(restaurantService, times(1)).search(any(RestaurantQueryRequest.class), any(Pageable.class));
+            verify(restaurantService, times(1)).search(any(RestaurantModel.class), any(Pageable.class));
         }
 
         @Test
@@ -203,9 +209,9 @@ class RestaurantControllerTest {
             Pageable pageable = PageRequest.of(0, 10);
             var restaurants = new ArrayList<RestaurantEntity>();
             restaurants.add(restaurantEntity);
-            var page = new PageImpl<>(restaurants, pageable, 1);
+            var page = new PageImpl<>(restaurants.stream().map(RestaurantMapper.MAPPER::toModel).toList(), pageable, restaurants.size());
 
-            when(restaurantService.search(any(RestaurantQueryRequest.class), any(Pageable.class)))
+            when(restaurantService.search(any(RestaurantModel.class), any(Pageable.class)))
                     .thenReturn(page);
 
             mockMvc.perform(get("/v1/restaurants")
@@ -215,7 +221,7 @@ class RestaurantControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray());
 
-            verify(restaurantService, times(1)).search(any(RestaurantQueryRequest.class), any(Pageable.class));
+            verify(restaurantService, times(1)).search(any(RestaurantModel.class), any(Pageable.class));
         }
 
         @Test
@@ -224,9 +230,9 @@ class RestaurantControllerTest {
             Pageable pageable = PageRequest.of(0, 10);
             var restaurants = new ArrayList<RestaurantEntity>();
             restaurants.add(restaurantEntity);
-            var page = new PageImpl<>(restaurants, pageable, 1);
+            var page = new PageImpl<>(restaurants.stream().map(RestaurantMapper.MAPPER::toModel).toList(), pageable, restaurants.size());
 
-            when(restaurantService.search(any(RestaurantQueryRequest.class), any(Pageable.class)))
+            when(restaurantService.search(any(RestaurantModel.class), any(Pageable.class)))
                     .thenReturn(page);
 
             mockMvc.perform(get("/v1/restaurants")
@@ -236,7 +242,7 @@ class RestaurantControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray());
 
-            verify(restaurantService, times(1)).search(any(RestaurantQueryRequest.class), any(Pageable.class));
+            verify(restaurantService, times(1)).search(any(RestaurantModel.class), any(Pageable.class));
         }
 
         @Test
@@ -245,9 +251,9 @@ class RestaurantControllerTest {
             Pageable pageable = PageRequest.of(0, 10);
             var restaurants = new ArrayList<RestaurantEntity>();
             restaurants.add(restaurantEntity);
-            var page = new PageImpl<>(restaurants, pageable, 1);
+            var page = new PageImpl<>(restaurants.stream().map(RestaurantMapper.MAPPER::toModel).toList(), pageable, restaurants.size());
 
-            when(restaurantService.search(any(RestaurantQueryRequest.class), any(Pageable.class)))
+            when(restaurantService.search(any(RestaurantModel.class), any(Pageable.class)))
                     .thenReturn(page);
 
             mockMvc.perform(get("/v1/restaurants")
@@ -257,7 +263,7 @@ class RestaurantControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray());
 
-            verify(restaurantService, times(1)).search(any(RestaurantQueryRequest.class), any(Pageable.class));
+            verify(restaurantService, times(1)).search(any(RestaurantModel.class), any(Pageable.class));
         }
 
         @Test
@@ -266,9 +272,9 @@ class RestaurantControllerTest {
             Pageable pageable = PageRequest.of(0, 10);
             var restaurants = new ArrayList<RestaurantEntity>();
             restaurants.add(restaurantEntity);
-            var page = new PageImpl<>(restaurants, pageable, 1);
+            var page = new PageImpl<>(restaurants.stream().map(RestaurantMapper.MAPPER::toModel).toList(), pageable, restaurants.size());
 
-            when(restaurantService.search(any(RestaurantQueryRequest.class), any(Pageable.class)))
+            when(restaurantService.search(any(RestaurantModel.class), any(Pageable.class)))
                     .thenReturn(page);
 
             mockMvc.perform(get("/v1/restaurants")
@@ -279,7 +285,7 @@ class RestaurantControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray());
 
-            verify(restaurantService, times(1)).search(any(RestaurantQueryRequest.class), any(Pageable.class));
+            verify(restaurantService, times(1)).search(any(RestaurantModel.class), any(Pageable.class));
         }
     }
 
@@ -299,8 +305,8 @@ class RestaurantControllerTest {
             restaurantEntity.setName("Restaurante Italiano Moderno");
             restaurantEntity.setDeliveryFee(new BigDecimal("12.00"));
 
-            when(restaurantService.update(eq(restaurantId), any(RestaurantRequest.class)))
-                    .thenReturn(restaurantEntity);
+            when(restaurantService.update(eq(restaurantId), any(RestaurantModel.class)))
+                    .thenReturn(RestaurantMapper.MAPPER.toModel(restaurantEntity));
 
             mockMvc.perform(put("/v1/restaurants/{id}", restaurantId)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -310,13 +316,13 @@ class RestaurantControllerTest {
                     .andExpect(jsonPath("$.name").value("Restaurante Italiano Moderno"))
                     .andExpect(jsonPath("$.delivery_fee").value(12.00));
 
-            verify(restaurantService, times(1)).update(eq(restaurantId), any(RestaurantRequest.class));
+            verify(restaurantService, times(1)).update(eq(restaurantId), any(RestaurantModel.class));
         }
 
         @Test
         @DisplayName("Deve retornar 404 ao atualizar restaurante inexistente")
         void deveRetornar404AoAtualizarRestauranteInexistente() throws Exception {
-            when(restaurantService.update(eq(restaurantId), any(RestaurantRequest.class)))
+            when(restaurantService.update(eq(restaurantId), any(RestaurantModel.class)))
                     .thenThrow(new ResourceNotFoundException("Restaurant", restaurantId.toString()));
 
             mockMvc.perform(put("/v1/restaurants/{id}", restaurantId)
@@ -324,7 +330,7 @@ class RestaurantControllerTest {
                             .content(objectMapper.writeValueAsString(restaurantRequest)))
                     .andExpect(status().isNotFound());
 
-            verify(restaurantService, times(1)).update(eq(restaurantId), any(RestaurantRequest.class));
+            verify(restaurantService, times(1)).update(eq(restaurantId), any(RestaurantModel.class));
         }
 
         @Test
@@ -338,7 +344,7 @@ class RestaurantControllerTest {
                     new BigDecimal("10.00")
             );
 
-            when(restaurantService.update(eq(restaurantId), any(RestaurantRequest.class)))
+            when(restaurantService.update(eq(restaurantId), any(RestaurantModel.class)))
                     .thenThrow(new ResourceNotFoundException("Kitchen", newKitchenId.toString()));
 
             mockMvc.perform(put("/v1/restaurants/{id}", restaurantId)
@@ -346,7 +352,7 @@ class RestaurantControllerTest {
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isNotFound());
 
-            verify(restaurantService, times(1)).update(eq(restaurantId), any(RestaurantRequest.class));
+            verify(restaurantService, times(1)).update(eq(restaurantId), any(RestaurantModel.class));
         }
 
         @Test
@@ -359,7 +365,7 @@ class RestaurantControllerTest {
                     new BigDecimal("10.00")
             );
 
-            when(restaurantService.update(eq(restaurantId), any(RestaurantRequest.class)))
+            when(restaurantService.update(eq(restaurantId), any(RestaurantModel.class)))
                     .thenThrow(new ResourceAlreadyExistsException("Restaurant", "name", "Outro Restaurante"));
 
             mockMvc.perform(put("/v1/restaurants/{id}", restaurantId)
@@ -367,7 +373,7 @@ class RestaurantControllerTest {
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isConflict());
 
-            verify(restaurantService, times(1)).update(eq(restaurantId), any(RestaurantRequest.class));
+            verify(restaurantService, times(1)).update(eq(restaurantId), any(RestaurantModel.class));
         }
     }
 
@@ -399,3 +405,5 @@ class RestaurantControllerTest {
         }
     }
 }
+
+

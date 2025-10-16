@@ -7,6 +7,7 @@ import io.github.wesleyosantos91.catalog.api.v1.request.KitchenQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.KitchenRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.KitchenResponse;
 import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
+import io.github.wesleyosantos91.catalog.domain.model.KitchenModel;
 import java.util.ArrayList;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -23,21 +24,37 @@ public interface KitchenMapper {
 
     KitchenMapper MAPPER = Mappers.getMapper(KitchenMapper.class);
 
-    KitchenEntity toEntity(KitchenQueryRequest query);
+    KitchenModel toModel(KitchenRequest request);
 
-    KitchenEntity toEntity(KitchenRequest request);
+    KitchenModel toModel(KitchenEntity entity);
 
-    KitchenEntity toEntity(KitchenRequest request, @MappingTarget KitchenEntity entity);
+    KitchenModel toQueryModel(KitchenQueryRequest request);
 
-    KitchenResponse toResponse(KitchenEntity entity);
+    KitchenEntity toEntity(KitchenModel model);
 
-    default List<KitchenResponse> toListResponse(List<KitchenEntity> entities) {
-        final List<KitchenResponse> list = new ArrayList<>();
-        entities.forEach(e -> list.add(toResponse(e)));
+    KitchenEntity toEntity(KitchenModel model, @MappingTarget KitchenEntity entity);
+
+    KitchenResponse toResponse(KitchenModel model);
+
+    default List<KitchenModel> toListDomain(List<KitchenEntity> entities) {
+        final List<KitchenModel> list = new ArrayList<>();
+        entities.forEach(m -> list.add(toModel(m)));
         return list;
     }
 
-    default Page<KitchenResponse> toPageResponse(Page<KitchenEntity> pages) {
+    default Page<KitchenModel> toPageDomain(Page<KitchenEntity> pages) {
+        final List<KitchenModel> list = toListDomain(pages.getContent());
+        return new PageImpl<>(list, pages.getPageable(), pages.getTotalElements());
+
+    }
+
+    default List<KitchenResponse> toListResponse(List<KitchenModel> models) {
+        final List<KitchenResponse> list = new ArrayList<>();
+        models.forEach(m -> list.add(toResponse(m)));
+        return list;
+    }
+
+    default Page<KitchenResponse> toPageResponse(Page<KitchenModel> pages) {
         final List<KitchenResponse> list = toListResponse(pages.getContent());
         return new PageImpl<>(list, pages.getPageable(), pages.getTotalElements());
 

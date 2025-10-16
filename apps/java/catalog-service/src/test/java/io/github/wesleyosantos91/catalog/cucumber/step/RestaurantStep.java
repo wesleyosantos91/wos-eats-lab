@@ -41,6 +41,7 @@ public class RestaurantStep {
 
     private ResponseEntity<String> response;
     private UUID createdRestaurantId;
+    private UUID createdKitchenId;  // Adicionar para armazenar a kitchen criada
     private String baseUrl;
 
     /**
@@ -119,10 +120,10 @@ public class RestaurantStep {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         // Criar uma cozinha primeiro para obter um kitchenId válido
-        UUID kitchenId = criarCozinhaParaTeste("Cozinha Teste");
+        createdKitchenId = criarCozinhaParaTeste("Cozinha Teste");
         
         String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 5.99}", 
-                nome, kitchenId);
+                nome, createdKitchenId);
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
         ResponseEntity<String> createResponse = restTemplate.postForEntity(baseUrl, request, String.class);
@@ -174,12 +175,10 @@ public class RestaurantStep {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Para atualização, precisamos enviar todos os campos obrigatórios
-        // Vamos criar uma cozinha para uso na atualização
-        UUID kitchenId = criarCozinhaParaTeste("Cozinha Atualizada");
-        
-        String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 7.99}", 
-                novoNome, kitchenId);
+        // Para atualização, vamos manter a mesma kitchen do restaurante criado
+        // Não precisamos trocar a kitchen, apenas o nome
+        String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 7.99, \"active\": true}", 
+                novoNome, createdKitchenId);
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
         response = restTemplate.exchange(

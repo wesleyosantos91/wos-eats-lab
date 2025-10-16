@@ -10,9 +10,20 @@
       "type": "string",
       "minLength": 1
     },
-    "kitchen_id": {
-      "type": "string",
-      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    "kitchen": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["id"],
+      "additionalProperties": false
     },
     "active": {
       "type": "boolean"
@@ -22,6 +33,6 @@
       "minimum": 0
     }
   },
-  "required": ["id", "name", "kitchen_id", "active", "delivery_fee"],
+  "required": ["id", "name", "kitchen", "active", "delivery_fee"],
   "additionalProperties": false
 }

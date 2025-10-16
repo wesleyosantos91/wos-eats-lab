@@ -3,7 +3,6 @@ package io.github.wesleyosantos91.catalog.api.v1.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.wesleyosantos91.catalog.TestcontainersConfiguration;
 import io.github.wesleyosantos91.catalog.api.v1.request.KitchenRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.KitchenResponse;
@@ -53,6 +52,7 @@ class KitchenControllerIT {
     void setUp() {
         // Limpa o banco antes de cada teste para garantir estado inicial limpo
         kitchenRepository.deleteAll();
+
 
         baseUrl = "http://localhost:" + port + "/v1/kitchens";
     }

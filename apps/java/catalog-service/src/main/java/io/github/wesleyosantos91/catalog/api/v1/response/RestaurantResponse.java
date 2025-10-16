@@ -11,8 +11,7 @@ import java.util.UUID;
 public record RestaurantResponse(
         UUID id,
         String name,
-        UUID kitchenId,
-        String kitchenName,
+        KitchenResponse kitchen,
         Boolean active,
         BigDecimal deliveryFee
 ) {}

@@ -37,7 +37,9 @@ public record ProductController(ProductService service) {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         LOGGER.debug("Function started 'create product'");
-        final var response = ProductMapper.MAPPER.toResponse(service.create(request));
+        final var model = ProductMapper.MAPPER.toModel(request);
+        final var createdModel = service.create(model);
+        final var response = ProductMapper.MAPPER.toResponse(createdModel);
         stopWatch.stop();
         LOGGER.debug("finished function with sucess 'create product {}' in {} ms", response, stopWatch.getTotalTimeMillis());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -48,8 +50,8 @@ public record ProductController(ProductService service) {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         LOGGER.debug("Function started 'getById product' with id {}", id);
-        final var product = service.findById(id);
-        final var response = ProductMapper.MAPPER.toResponse(product);
+        final var model = service.findById(id);
+        final var response = ProductMapper.MAPPER.toResponse(model);
         stopWatch.stop();
         LOGGER.debug("finished function with sucess 'getById product' {} in {} ms", response, stopWatch.getTotalTimeMillis());
         return ResponseEntity.ok().body(response);
@@ -60,11 +62,12 @@ public record ProductController(ProductService service) {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         LOGGER.info("Function started 'find product'");
-        final var pageEntity = service.search(query, page);
+        final var queryModel = ProductMapper.MAPPER.toQueryModel(query);
+        final var pageModel = service.search(queryModel, page);
         stopWatch.stop();
         LOGGER.info("finished function with product 'find product' in {} ms", stopWatch.getTotalTimeMillis());
 
-        return ResponseEntity.ok().body(new PagedModel<>(ProductMapper.MAPPER.toPageResponse(pageEntity)));
+        return ResponseEntity.ok().body(new PagedModel<>(ProductMapper.MAPPER.toPageResponse(pageModel)));
     }
 
     @PutMapping(value = "/{id}")
@@ -74,10 +77,12 @@ public record ProductController(ProductService service) {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         LOGGER.debug("Function started 'update product'");
-        final var product = service.update(id, request);
+        final var model = ProductMapper.MAPPER.toModel(request);
+        final var updatedModel = service.update(id, model);
+        final var response = ProductMapper.MAPPER.toResponse(updatedModel);
         stopWatch.stop();
-        LOGGER.debug("finished function with sucess 'update product' {} in {} ms", product, stopWatch.getTotalTimeMillis());
-        return ResponseEntity.status(HttpStatus.OK).body(ProductMapper.MAPPER.toResponse(product));
+        LOGGER.debug("finished function with sucess 'update product' {} in {} ms", response, stopWatch.getTotalTimeMillis());
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @DeleteMapping(value = "/{id}")
@@ -92,3 +97,4 @@ public record ProductController(ProductService service) {
         return ResponseEntity.noContent().build();
     }
 }
+
