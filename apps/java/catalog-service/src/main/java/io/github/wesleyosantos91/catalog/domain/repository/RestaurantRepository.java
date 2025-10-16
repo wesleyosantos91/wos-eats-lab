@@ -2,6 +2,7 @@ package io.github.wesleyosantos91.catalog.domain.repository;
 
 import io.github.wesleyosantos91.catalog.domain.entity.RestaurantEntity;
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,9 @@ import org.springframework.stereotype.Repository;
 public interface RestaurantRepository extends JpaRepository<RestaurantEntity, UUID> {
 
     boolean existsByName(String name);
+
+    @Query("SELECT r FROM RestaurantEntity r JOIN FETCH r.kitchen WHERE r.id = :id")
+    Optional<RestaurantEntity> findByIdWithKitchen(@Param("id") UUID id);
 
     @Query("""
             SELECT r 

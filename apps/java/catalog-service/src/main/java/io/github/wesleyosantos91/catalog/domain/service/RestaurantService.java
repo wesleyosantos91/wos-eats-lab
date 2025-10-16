@@ -16,6 +16,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -31,7 +32,6 @@ public class RestaurantService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RestaurantService.class);
     private static final String RESOURCE_NAME = "Restaurant";
     private static final String KITCHEN_RESOURCE_NAME = "Kitchen";
-    public static final String UNEXPECTED_ERROR = "UNEXPECTED_ERROR";
     public static final String DATA_INTEGRITY_VIOLATION = "DATA_INTEGRITY_VIOLATION";
     public static final String NAME = "name";
 
@@ -73,6 +73,7 @@ public class RestaurantService {
         }
     }
 
+    @Cacheable(value = "restaurants", key = "#id")
     @Transactional(readOnly = true)
     public RestaurantModel findById(UUID id) {
         LOGGER.debug("Searching for restaurant with id: {}", id);
@@ -126,18 +127,16 @@ public class RestaurantService {
         LOGGER.info("Updating restaurant with id: {}", id);
 
         try {
-            final Optional<RestaurantEntity> existingRestaurant = repository.findById(id);
+            final Optional<RestaurantEntity> existingRestaurant = repository.findByIdWithKitchen(id);
             final RestaurantEntity current = existingRestaurant.orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id.toString()));
 
-            // Validate kitchen exists if it's being changed
-            if (!Objects.equals(current.getKitchen().getId(), model.kitchenId())) {
-                if (!kitchenRepository.existsById(model.kitchenId())) {
-                    LOGGER.warn("Attempt to update restaurant to non-existing kitchen: {}", model.kitchenId());
-                    throw new ResourceNotFoundException(KITCHEN_RESOURCE_NAME, model.kitchenId().toString());
+            if (!Objects.equals(current.getKitchen().getId(), model.kitchen().id())) {
+                if (!kitchenRepository.existsById(model.kitchen().id())) {
+                    LOGGER.warn("Attempt to update restaurant to non-existing kitchen: {}", model.kitchen().id());
+                    throw new ResourceNotFoundException(KITCHEN_RESOURCE_NAME, model.kitchen().id().toString());
                 }
             }
 
-            // Check for duplicate restaurant name (only if name is being changed)
             if (!Objects.equals(current.getName(), model.name())
                     && repository.existsByName(model.name())) {
                 LOGGER.warn("Attempt to update restaurant name to existing name: {} for id: {}", model.name(), id);

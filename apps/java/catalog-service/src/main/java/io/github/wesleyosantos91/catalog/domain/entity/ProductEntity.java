@@ -11,13 +11,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "product", schema = "catalog_schema")
-public class ProductEntity {
+public class ProductEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

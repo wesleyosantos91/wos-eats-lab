@@ -333,7 +333,7 @@ class RestaurantServiceTest {
             updatedEntity.setActive(true);
             updatedEntity.setDeliveryFee(new BigDecimal("12.00"));
 
-            when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurantEntity));
+            when(restaurantRepository.findByIdWithKitchen(restaurantId)).thenReturn(Optional.of(restaurantEntity));
             when(restaurantRepository.existsByName("Restaurante Atualizado")).thenReturn(false);
             when(restaurantRepository.save(any(RestaurantEntity.class))).thenReturn(updatedEntity);
 
@@ -341,7 +341,7 @@ class RestaurantServiceTest {
 
             assertNotNull(result);
             assertEquals("Restaurante Atualizado", result.name());
-            verify(restaurantRepository, times(1)).findById(restaurantId);
+            verify(restaurantRepository, times(1)).findByIdWithKitchen(restaurantId);
             verify(restaurantRepository, times(1)).save(any(RestaurantEntity.class));
         }
 
@@ -361,14 +361,14 @@ class RestaurantServiceTest {
             updatedEntity.setActive(false);
             updatedEntity.setDeliveryFee(new BigDecimal("15.00"));
 
-            when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurantEntity));
+            when(restaurantRepository.findByIdWithKitchen(restaurantId)).thenReturn(Optional.of(restaurantEntity));
             when(restaurantRepository.save(any(RestaurantEntity.class))).thenReturn(updatedEntity);
 
             RestaurantModel result = restaurantService.update(restaurantId, updateRequest);
 
             assertNotNull(result);
             assertEquals("Restaurante Teste", result.name());
-            verify(restaurantRepository, times(1)).findById(restaurantId);
+            verify(restaurantRepository, times(1)).findByIdWithKitchen(restaurantId);
             verify(restaurantRepository, never()).existsByName(anyString());
             verify(restaurantRepository, times(1)).save(any(RestaurantEntity.class));
         }
@@ -384,7 +384,7 @@ class RestaurantServiceTest {
                     new BigDecimal("10.00")
             );
 
-            when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurantEntity));
+            when(restaurantRepository.findByIdWithKitchen(restaurantId)).thenReturn(Optional.of(restaurantEntity));
             when(kitchenRepository.existsById(newKitchenId)).thenReturn(true);
             when(restaurantRepository.save(any(RestaurantEntity.class))).thenReturn(restaurantEntity);
 
@@ -392,14 +392,14 @@ class RestaurantServiceTest {
 
             assertNotNull(result);
             verify(kitchenRepository, times(1)).existsById(newKitchenId);
-            verify(restaurantRepository, times(1)).findById(restaurantId);
+            verify(restaurantRepository, times(1)).findByIdWithKitchen(restaurantId);
             verify(restaurantRepository, times(1)).save(any(RestaurantEntity.class));
         }
 
         @Test
         @DisplayName("Deve lançar ResourceNotFoundException quando restaurante não existe")
         void deveLancarExcecaoQuandoRestauranteNaoExiste() {
-            when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.empty());
+            when(restaurantRepository.findByIdWithKitchen(restaurantId)).thenReturn(Optional.empty());
 
             ResourceNotFoundException exception = assertThrows(
                     ResourceNotFoundException.class,
@@ -407,7 +407,7 @@ class RestaurantServiceTest {
             );
 
             assertNotNull(exception);
-            verify(restaurantRepository, times(1)).findById(restaurantId);
+            verify(restaurantRepository, times(1)).findByIdWithKitchen(restaurantId);
             verify(restaurantRepository, never()).save(any(RestaurantEntity.class));
         }
 
@@ -422,7 +422,7 @@ class RestaurantServiceTest {
                     new BigDecimal("10.00")
             );
 
-            when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurantEntity));
+            when(restaurantRepository.findByIdWithKitchen(restaurantId)).thenReturn(Optional.of(restaurantEntity));
             when(kitchenRepository.existsById(newKitchenId)).thenReturn(false);
 
             ResourceNotFoundException exception = assertThrows(
@@ -445,7 +445,7 @@ class RestaurantServiceTest {
                     new BigDecimal("10.00")
             );
 
-            when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurantEntity));
+            when(restaurantRepository.findByIdWithKitchen(restaurantId)).thenReturn(Optional.of(restaurantEntity));
             when(restaurantRepository.existsByName("Outro Restaurante")).thenReturn(true);
 
             ResourceAlreadyExistsException exception = assertThrows(
@@ -467,7 +467,7 @@ class RestaurantServiceTest {
                     new BigDecimal("10.00")
             );
 
-            when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurantEntity));
+            when(restaurantRepository.findByIdWithKitchen(restaurantId)).thenReturn(Optional.of(restaurantEntity));
             when(restaurantRepository.existsByName("Restaurante Atualizado")).thenReturn(false);
             when(restaurantRepository.save(any(RestaurantEntity.class)))
                     .thenThrow(new DataIntegrityViolationException("Duplicate key"));
@@ -484,7 +484,7 @@ class RestaurantServiceTest {
         @Test
         @DisplayName("Deve lançar BusinessException quando há erro de banco de dados")
         void deveLancarBusinessExceptionQuandoErroBancoDados() {
-            when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurantEntity));
+            when(restaurantRepository.findByIdWithKitchen(restaurantId)).thenReturn(Optional.of(restaurantEntity));
             when(restaurantRepository.save(any(RestaurantEntity.class)))
                     .thenThrow(new DataAccessException("Database error") {});
 

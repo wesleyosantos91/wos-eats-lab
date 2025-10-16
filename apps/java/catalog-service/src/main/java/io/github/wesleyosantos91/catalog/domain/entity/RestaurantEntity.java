@@ -12,6 +12,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -20,7 +21,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "restaurant", schema = "catalog_schema")
-public class RestaurantEntity {
+public class RestaurantEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

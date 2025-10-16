@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -70,6 +72,7 @@ public class ProductService {
         }
     }
 
+    @Cacheable(value = "products", key = "#id")
     @Transactional(readOnly = true)
     public ProductModel findById(UUID id) {
         LOGGER.debug("Searching for product with id: {}", id);
@@ -117,12 +120,13 @@ public class ProductService {
         }
     }
 
+    @CacheEvict(value = "products", key = "#id")
     @Transactional
     public ProductModel update(UUID id, ProductModel model) {
         LOGGER.info("Updating product with id: {}", id);
 
         try {
-            final Optional<ProductEntity> existingProduct = repository.findById(id);
+            final Optional<ProductEntity> existingProduct = repository.findByIdWithRestaurant(id);
             final ProductEntity current = existingProduct.orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id.toString()));
 
             if (!Objects.equals(current.getRestaurant().getId(), model.restaurantId())) {
@@ -153,6 +157,7 @@ public class ProductService {
         }
     }
 
+    @CacheEvict(value = "products", key = "#id")
     @Transactional
     public void delete(UUID id) {
         LOGGER.info("Deleting product with id: {}", id);

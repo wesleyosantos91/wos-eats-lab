@@ -16,12 +16,15 @@ spring:
     username: postgres
     password: postgres
     hikari:
-      maximum-pool-size: 20        # Aumentado de 10 para melhor concorrência
-      minimum-idle: 5              # Aumentado de 2 para manter conexões prontas
-      connection-timeout: 20000    # Aumentado para 20s
-      idle-timeout: 300000         # 5min idle timeout
-      max-lifetime: 1200000        # 20min max lifetime
-      leak-detection-threshold: 60000  # Detectar vazamentos de conexão
+      maximum-pool-size: 8         # ⭐ Reduzido: cache reduz hits ao DB
+      minimum-idle: 3              # ⭐ Reduzido: menos conexões idle
+      connection-timeout: 15000    # ⭐ Mais agressivo
+      idle-timeout: 240000         # ⭐ 4min (reduzido)
+      max-lifetime: 900000         # ⭐ 15min (reduzido)
+      leak-detection-threshold: 30000  # ⭐ Mais agressivo (30s)
+      keepalive-time: 120000       # ⭐ 2min keep-alive
+      validation-timeout: 3000     # ⭐ Validação rápida
+      initialization-fail-timeout: 5000  # ⭐ Falha rápida na init
   jpa:
     hibernate:
       ddl-auto: validate

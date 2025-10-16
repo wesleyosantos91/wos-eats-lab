@@ -9,13 +9,14 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
 @Entity
 @Table(name = "kitchen", schema = "catalog_schema")
-public class KitchenEntity {
+public class KitchenEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

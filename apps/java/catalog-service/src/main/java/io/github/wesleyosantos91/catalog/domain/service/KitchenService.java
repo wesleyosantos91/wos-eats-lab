@@ -15,6 +15,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -63,6 +64,7 @@ public class KitchenService {
         }
     }
 
+    @Cacheable(value = "kitchens", key = "#id")
     @Transactional(readOnly = true)
     public KitchenModel findById(UUID id) {
         LOGGER.debug("Searching for kitchen with id: {}", id);

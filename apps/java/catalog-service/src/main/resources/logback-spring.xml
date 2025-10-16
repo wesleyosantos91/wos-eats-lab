@@ -64,8 +64,18 @@
       </encoder>
     </appender>
 
-    <root level="INFO">
+    <!-- ⭐ ASYNC APPENDER para melhor performance -->
+    <appender name="asyncConsoleAppender" class="ch.qos.logback.classic.AsyncAppender">
       <appender-ref ref="consoleAppender"/>
+      <queueSize>1024</queueSize>                    <!-- Buffer size -->
+      <discardingThreshold>0</discardingThreshold>   <!-- Não descartar logs -->
+      <maxFlushTime>5000</maxFlushTime>              <!-- Timeout para flush -->
+      <neverBlock>false</neverBlock>                 <!-- Block se necessário -->
+      <includeCallerData>false</includeCallerData>   <!-- Performance -->
+    </appender>
+
+    <root level="INFO">
+      <appender-ref ref="asyncConsoleAppender"/>
     </root>
   </springProfile>
 
