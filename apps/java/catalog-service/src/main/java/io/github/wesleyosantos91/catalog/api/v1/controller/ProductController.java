@@ -4,9 +4,9 @@ import io.github.wesleyosantos91.catalog.api.v1.request.ProductQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.ProductRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.ProductResponse;
 import io.github.wesleyosantos91.catalog.core.mapper.ProductMapper;
+import io.github.wesleyosantos91.catalog.core.port.in.product.ProductServicePort;
 import io.github.wesleyosantos91.catalog.core.validation.Groups;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
-import io.github.wesleyosantos91.catalog.domain.service.ProductService;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/products")
-public record ProductController(ProductService service) {
+public record ProductController(ProductServicePort service) {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProductController.class);
 

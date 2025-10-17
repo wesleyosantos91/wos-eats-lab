@@ -1,3 +1,4 @@
+
 package io.github.wesleyosantos91.catalog;
 
 import org.springframework.boot.SpringApplication;

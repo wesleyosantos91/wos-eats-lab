@@ -24,10 +24,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-/**
- * Step Definitions para os cenários BDD de Restaurant.
- * Implementa os passos definidos em restaurant.feature.
- */
 public class RestaurantStep {
 
     private final TestRestTemplate restTemplate;
@@ -41,13 +37,9 @@ public class RestaurantStep {
 
     private ResponseEntity<String> response;
     private UUID createdRestaurantId;
-    private UUID createdKitchenId;  // Adicionar para armazenar a kitchen criada
+    private UUID createdKitchenId;
     private String baseUrl;
 
-    /**
-     * Método auxiliar para criar uma cozinha e retornar seu ID.
-     * Usado para satisfazer a dependência de kitchenId nos testes de restaurante.
-     */
     private UUID criarCozinhaParaTeste(String nomeCozinha) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -68,7 +60,6 @@ public class RestaurantStep {
     @Dado("que o serviço de catálogo de restaurantes está disponível")
     public void queOServicoDeCatalogoDeRestaurantesEstaDisponivel() {
         baseUrl = FeatureUtils.getHost(randomServerPort) + "/v1/restaurants";
-        // Verifica se o serviço está up através do actuator
         ResponseEntity<String> healthResponse = restTemplate.getForEntity(
                 FeatureUtils.getHost(randomServerPort) + "/actuator/health",
                 String.class
@@ -81,7 +72,6 @@ public class RestaurantStep {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Criar uma cozinha primeiro para obter um kitchenId válido
         UUID kitchenId = criarCozinhaParaTeste("Italiana");
         
         String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 5.99}", 
@@ -119,7 +109,6 @@ public class RestaurantStep {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Criar uma cozinha primeiro para obter um kitchenId válido
         createdKitchenId = criarCozinhaParaTeste("Cozinha Teste");
         
         String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 5.99}", 
@@ -147,7 +136,6 @@ public class RestaurantStep {
 
         for (Map<String, String> row : rows) {
             String nome = row.get("nome");
-            // Criar uma cozinha para cada restaurante
             UUID kitchenId = criarCozinhaParaTeste("Cozinha para " + nome);
             
             String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 5.99}", 
@@ -175,8 +163,6 @@ public class RestaurantStep {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Para atualização, vamos manter a mesma kitchen do restaurante criado
-        // Não precisamos trocar a kitchen, apenas o nome
         String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 7.99, \"active\": true}", 
                 novoNome, createdKitchenId);
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
@@ -204,7 +190,6 @@ public class RestaurantStep {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Criar uma cozinha para o teste
         UUID kitchenId = criarCozinhaParaTeste("Cozinha Teste Duplicado");
         
         String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 5.99}", 

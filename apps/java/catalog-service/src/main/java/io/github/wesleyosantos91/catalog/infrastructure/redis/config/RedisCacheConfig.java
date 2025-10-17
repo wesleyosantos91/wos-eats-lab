@@ -1,4 +1,4 @@
-package io.github.wesleyosantos91.catalog.infrastructure.redis;
+package io.github.wesleyosantos91.catalog.infrastructure.redis.config;
 
 import java.time.Duration;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;

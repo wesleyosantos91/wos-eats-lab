@@ -111,6 +111,17 @@ management:
     key-values:
       my_custom_tag: ${spring.application.name}
 
+s3:
+  endpoint-url: https://localhost.localstack.cloud:4566
+  region: us-east-1
+  access-key: test
+  secret-key: test
+  bucket-name: wos-eats-catalog
+  max-size-bytes: 5242880
+  allowed-content-types:
+    - image/jpeg
+    - image/png
+
 #resilience4j:
 #  retry:
 #    instances:

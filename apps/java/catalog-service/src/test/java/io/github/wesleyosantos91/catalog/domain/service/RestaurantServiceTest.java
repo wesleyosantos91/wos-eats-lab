@@ -38,10 +38,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-/**
- * Testes unitários para RestaurantService.
- * Usa Mockito para mockar os repositories e testar a lógica de negócio isoladamente.
- */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RestaurantService - Unit Tests")
 class RestaurantServiceTest {
@@ -349,7 +345,7 @@ class RestaurantServiceTest {
         @DisplayName("Deve atualizar restaurante mantendo mesmo nome")
         void deveAtualizarRestauranteManvendoMesmoNome() {
             RestaurantModel updateRequest = new RestaurantModel(
-                    "Restaurante Teste", // mesmo nome
+                    "Restaurante Teste",
                     kitchenId,
                     false,
                     new BigDecimal("15.00")

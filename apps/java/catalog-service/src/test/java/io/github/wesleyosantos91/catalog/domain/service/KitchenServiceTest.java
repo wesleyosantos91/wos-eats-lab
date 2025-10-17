@@ -36,10 +36,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-/**
- * Testes unitários para KitchenService.
- * Usa Mockito para mockar o repository e testar a lógica de negócio isoladamente.
- */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("KitchenService - Unit Tests")
 class KitchenServiceTest {
@@ -294,7 +290,6 @@ class KitchenServiceTest {
         @Test
         @DisplayName("Deve atualizar cozinha com mesmo nome sem verificar duplicata")
         void deveAtualizarCozinhaComMesmoNomeSemVerificarDuplicata() {
-            // Usar o mesmo nome da cozinha existente
             KitchenModel updateRequest = new KitchenModel("Italiana");
 
             when(kitchenRepository.findById(kitchenId)).thenReturn(Optional.of(kitchenEntity));
@@ -305,7 +300,7 @@ class KitchenServiceTest {
             assertNotNull(result);
             assertEquals("Italiana", result.name());
             verify(kitchenRepository, times(1)).findById(kitchenId);
-            verify(kitchenRepository, never()).existsByName(anyString()); // Não deve verificar nome duplicado
+            verify(kitchenRepository, never()).existsByName(anyString());
             verify(kitchenRepository, times(1)).save(any(KitchenEntity.class));
         }
 

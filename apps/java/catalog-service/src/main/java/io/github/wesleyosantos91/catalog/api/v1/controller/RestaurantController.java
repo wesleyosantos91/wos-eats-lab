@@ -5,9 +5,9 @@ import static io.github.wesleyosantos91.catalog.core.mapper.RestaurantMapper.MAP
 import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.RestaurantResponse;
+import io.github.wesleyosantos91.catalog.core.port.in.restaurant.RestaurantServicePort;
 import io.github.wesleyosantos91.catalog.core.validation.Groups;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
-import io.github.wesleyosantos91.catalog.domain.service.RestaurantService;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/restaurants")
-public record RestaurantController(RestaurantService service) {
+public record RestaurantController(RestaurantServicePort service) {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RestaurantController.class);
 

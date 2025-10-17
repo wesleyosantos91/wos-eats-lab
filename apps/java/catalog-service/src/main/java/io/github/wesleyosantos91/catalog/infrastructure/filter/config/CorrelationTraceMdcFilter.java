@@ -1,4 +1,4 @@
-package io.github.wesleyosantos91.catalog.infrastructure.filter;
+package io.github.wesleyosantos91.catalog.infrastructure.filter.config;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;

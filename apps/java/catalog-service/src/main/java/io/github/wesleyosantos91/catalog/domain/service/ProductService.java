@@ -1,6 +1,8 @@
 package io.github.wesleyosantos91.catalog.domain.service;
 
+import io.github.wesleyosantos91.catalog.core.annotation.Adapter;
 import io.github.wesleyosantos91.catalog.core.mapper.ProductMapper;
+import io.github.wesleyosantos91.catalog.core.port.in.product.ProductServicePort;
 import io.github.wesleyosantos91.catalog.domain.entity.ProductEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.BusinessException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
@@ -22,17 +24,15 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
-public class ProductService {
+@Adapter(type = Adapter.AdapterType.INBOUND, description = "Product Service Adapter")
+public class ProductService implements ProductServicePort {
 
     public static final String DATABASE_ERROR = "DATABASE_ERROR";
     public static final String NAME = "name";
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProductService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductServicePort.class);
     private static final String RESOURCE_NAME = "Product";
-    public static final String UNEXPECTED_ERROR = "UNEXPECTED_ERROR";
     public static final String DATA_INTEGRITY_VIOLATION = "DATA_INTEGRITY_VIOLATION";
 
     private final ProductRepository repository;
@@ -45,16 +45,16 @@ public class ProductService {
 
     @Transactional
     public ProductModel create(ProductModel model) {
-        LOGGER.info("Creating new product with name: {} for restaurant: {}", model.name(), model.restaurantId());
+        LOGGER.info("Creating new product with name: {} for restaurant: {}", model.name(), model.restaurant().id());
 
         try {
-            if (!restaurantRepository.existsById(model.restaurantId())) {
-                LOGGER.warn("Attempt to create product for non-existing restaurant: {}", model.restaurantId());
-                throw new ResourceNotFoundException("Restaurant", model.restaurantId().toString());
+            if (!restaurantRepository.existsById(model.restaurant().id())) {
+                LOGGER.warn("Attempt to create product for non-existing restaurant: {}", model.restaurant().id());
+                throw new ResourceNotFoundException("Restaurant", model.restaurant().id().toString());
             }
 
-            if (repository.existsByNameAndRestaurantId(model.name(), model.restaurantId())) {
-                LOGGER.warn("Attempt to create product with existing name: {} for restaurant: {}", model.name(), model.restaurantId());
+            if (repository.existsByNameAndRestaurantId(model.name(), model.restaurant().id())) {
+                LOGGER.warn("Attempt to create product with existing name: {} for restaurant: {}", model.name(), model.restaurant().id());
                 throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
             }
 
@@ -102,7 +102,7 @@ public class ProductService {
 
         try {
             final Page<ProductEntity> result = repository.findByFilters(
-                    queryModel.restaurantId(),
+                    queryModel.restaurant().id(),
                     queryModel.name(),
                     queryModel.minPrice(),
                     queryModel.maxPrice(),
@@ -129,17 +129,17 @@ public class ProductService {
             final Optional<ProductEntity> existingProduct = repository.findByIdWithRestaurant(id);
             final ProductEntity current = existingProduct.orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id.toString()));
 
-            if (!Objects.equals(current.getRestaurant().getId(), model.restaurantId())) {
-                if (!restaurantRepository.existsById(model.restaurantId())) {
-                    LOGGER.warn("Attempt to update product to non-existing restaurant: {}", model.restaurantId());
-                    throw new ResourceNotFoundException("Restaurant", model.restaurantId().toString());
+            if (!Objects.equals(current.getRestaurant().getId(), model.restaurant().id())) {
+                if (!restaurantRepository.existsById(model.restaurant().id())) {
+                    LOGGER.warn("Attempt to update product to non-existing restaurant: {}", model.restaurant().id());
+                    throw new ResourceNotFoundException("Restaurant", model.restaurant().id().toString());
                 }
             }
 
-            if ((!Objects.equals(current.getName(), model.name()) || !Objects.equals(current.getRestaurant().getId(), model.restaurantId()))
-                    && repository.existsByNameAndRestaurantId(model.name(), model.restaurantId())) {
+            if ((!Objects.equals(current.getName(), model.name()) || !Objects.equals(current.getRestaurant().getId(), model.restaurant().id()))
+                    && repository.existsByNameAndRestaurantId(model.name(), model.restaurant().id())) {
                 LOGGER.warn("Attempt to update product name to existing name: {} for restaurant: {} "
-                        + "and id: {}", model.name(), model.restaurantId(), id);
+                        + "and id: {}", model.name(), model.restaurant().id(), id);
                 throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
             }
 

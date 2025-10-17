@@ -40,10 +40,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Testes unitários para RestaurantController.
- * Usa @WebMvcTest para testar apenas a camada web, mockando o service.
- */
 @WebMvcTest(RestaurantController.class)
 @DisplayName("RestaurantController - Unit Tests")
 class RestaurantControllerTest {

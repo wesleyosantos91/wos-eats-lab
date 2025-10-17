@@ -31,11 +31,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
-/**
- * Testes de integração para RestaurantController.
- * Usa @SpringBootTest com porta aleatória e Testcontainers para banco PostgreSQL.
- * Testa o fluxo completo incluindo controller, service, repository e banco de dados.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(TestcontainersConfiguration.class)
 @ActiveProfiles("integration")
@@ -60,20 +55,16 @@ class RestaurantControllerIT {
 
     @BeforeEach
     void setUp() {
-        // Limpa o banco antes de cada teste para garantir estado inicial limpo
         restaurantRepository.deleteAll();
         kitchenRepository.deleteAll();
 
         baseUrl = "http://localhost:" + port + "/v1/restaurants";
         kitchenBaseUrl = "http://localhost:" + port + "/v1/kitchens";
-        
-        // Cria uma cozinha para usar nos testes de restaurante
         kitchenId = criarCozinha("Italiana");
     }
 
     @AfterEach
     void tearDown() {
-        // Limpa o banco após cada teste para garantir isolamento
         restaurantRepository.deleteAll();
         kitchenRepository.deleteAll();
     }
@@ -347,10 +338,8 @@ class RestaurantControllerIT {
         @Test
         @DisplayName("Deve atualizar um restaurante com sucesso")
         void deveAtualizarRestauranteComSucesso() {
-            // Cria restaurante primeiro
             UUID restaurantId = criarRestaurante("Restaurante Original", kitchenId, true, new BigDecimal("10.00"));
 
-            // Atualiza o restaurante
             RestaurantRequest updateRequest = new RestaurantRequest(
                     "Restaurante Atualizado",
                     kitchenId,
@@ -376,7 +365,6 @@ class RestaurantControllerIT {
             assertEquals(false, response.getBody().active());
             assertEquals(new BigDecimal("15.00"), response.getBody().deliveryFee());
 
-            // Verifica se foi atualizado no banco
             var updatedRestaurant = restaurantRepository.findById(restaurantId);
             assertTrue(updatedRestaurant.isPresent());
             assertEquals("Restaurante Atualizado", updatedRestaurant.get().getName());
@@ -411,11 +399,9 @@ class RestaurantControllerIT {
         @Test
         @DisplayName("Deve retornar 409 quando novo nome já existir")
         void deveRetornar409QuandoNovoNomeJaExistir() {
-            // Cria dois restaurantes
             UUID restaurantId1 = criarRestaurante("Restaurante Um", kitchenId, true, new BigDecimal("10.00"));
             criarRestaurante("Restaurante Dois", kitchenId, true, new BigDecimal("12.00"));
 
-            // Tenta atualizar o primeiro com o nome do segundo
             RestaurantRequest updateRequest = new RestaurantRequest(
                     "Restaurante Dois",
                     kitchenId,
@@ -445,13 +431,10 @@ class RestaurantControllerIT {
         @Test
         @DisplayName("Deve deletar um restaurante com sucesso")
         void deveDeletarRestauranteComSucesso() {
-            // Cria restaurante primeiro
             UUID restaurantId = criarRestaurante("Restaurante Delete", kitchenId, true, new BigDecimal("10.00"));
 
-            // Verifica que existe
             assertTrue(restaurantRepository.findById(restaurantId).isPresent());
 
-            // Deleta o restaurante
             ResponseEntity<Void> response = restTemplate.exchange(
                     baseUrl + "/" + restaurantId,
                     HttpMethod.DELETE,
@@ -461,7 +444,6 @@ class RestaurantControllerIT {
 
             assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
-            // Verifica que foi deletado do banco
             assertTrue(restaurantRepository.findById(restaurantId).isEmpty());
         }
 

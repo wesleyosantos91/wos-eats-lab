@@ -1,4 +1,4 @@
-package io.github.wesleyosantos91.catalog.infrastructure.virtualthread;
+package io.github.wesleyosantos91.catalog.infrastructure.virtualthread.config;
 
 import java.util.Map;
 import java.util.concurrent.Executors;

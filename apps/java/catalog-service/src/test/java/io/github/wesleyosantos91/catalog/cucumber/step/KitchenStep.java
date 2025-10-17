@@ -24,10 +24,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-/**
- * Step Definitions para os cenários BDD de Kitchen.
- * Implementa os passos definidos em kitchen.feature.
- */
 public class KitchenStep {
 
 
@@ -47,7 +43,6 @@ public class KitchenStep {
     @Dado("que o serviço de catálogo está disponível")
     public void queOServicoDeCatalogoEstaDisponivel() {
         baseUrl = FeatureUtils.getHost(randomServerPort) + "/v1/kitchens";
-        // Verifica se o serviço está up através do actuator
         ResponseEntity<String> healthResponse = restTemplate.getForEntity(
                 FeatureUtils.getHost(randomServerPort) + "/actuator/health",
                 String.class

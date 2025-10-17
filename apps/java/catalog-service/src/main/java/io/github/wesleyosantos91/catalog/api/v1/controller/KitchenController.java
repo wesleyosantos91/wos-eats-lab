@@ -5,9 +5,9 @@ import static io.github.wesleyosantos91.catalog.core.mapper.KitchenMapper.MAPPER
 import io.github.wesleyosantos91.catalog.api.v1.request.KitchenQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.KitchenRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.KitchenResponse;
+import io.github.wesleyosantos91.catalog.core.port.in.kitchen.KitchenServicePort;
 import io.github.wesleyosantos91.catalog.core.validation.Groups;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
-import io.github.wesleyosantos91.catalog.domain.service.KitchenService;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/kitchens")
-public record KitchenController(KitchenService service) {
+public record KitchenController(KitchenServicePort service) {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KitchenController.class);
 

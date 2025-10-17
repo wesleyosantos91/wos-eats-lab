@@ -1,4 +1,4 @@
-package io.github.wesleyosantos91.catalog.infrastructure.metric;
+package io.github.wesleyosantos91.catalog.infrastructure.metric.config;
 
 import io.micrometer.core.aop.CountedAspect;
 import io.micrometer.core.aop.TimedAspect;

@@ -1,17 +1,21 @@
 package io.github.wesleyosantos91.catalog.architecture;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
+import io.github.wesleyosantos91.catalog.core.annotation.Adapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
-
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 /**
  * Testes de arquitetura para validar convenções de nomenclatura e estrutura.
@@ -48,24 +52,52 @@ public class NamingConventionTest {
     }
 
     @Test
-    @DisplayName("Services devem estar no pacote 'domain.service'")
-    void services_should_be_in_service_package() {
+    @DisplayName("INBOUND: classes em '..domain.service..' DEVEM usar @Adapter(type=INBOUND)")
+    void inbound_must_be_in_service_and_use_inbound_adapter() {
         ArchRule rule = classes()
-            .that().areAnnotatedWith(Service.class)
-            .should().resideInAPackage("..domain.service..")
-            .as("Services should reside in domain.service package");
-            
+                .that().resideInAPackage("..domain.service..")                // <-- escopo correto (somente INBOUND)
+                .should().beAnnotatedWith(Adapter.class)
+                .andShould(haveAdapterType(Adapter.AdapterType.INBOUND))
+                .as("INBOUND residem em '..domain.service..' e usam @Adapter(type=INBOUND)");
+
         rule.check(importedClasses);
     }
 
     @Test
-    @DisplayName("Services devem ter sufixo 'Service'")
-    void services_should_have_service_suffix() {
+    @DisplayName("OUTBOUND: classes em '..infrastructure..adapter..' DEVEM usar @Adapter(type=OUTBOUND)")
+    void outbound_must_be_in_infra_adapter_and_use_outbound_adapter() {
         ArchRule rule = classes()
-            .that().areAnnotatedWith(Service.class)
-            .should().haveSimpleNameEndingWith("Service")
-            .as("Services should have 'Service' suffix");
-            
+                .that().resideInAPackage("..infrastructure..adapter..")       // <-- escopo correto (somente OUTBOUND)
+                .should().beAnnotatedWith(Adapter.class)
+                .andShould(haveAdapterType(Adapter.AdapterType.OUTBOUND))
+                .as("OUTBOUND residem em '..infrastructure..adapter..' e usam @Adapter(type=OUTBOUND)");
+
+        rule.check(importedClasses);
+    }
+
+    @Test
+    @DisplayName("INBOUND: Services em '..domain.service..' devem ter sufixo 'Service' e @Adapter(INBOUND)")
+    void inbound_services_should_be_in_service_package_and_have_service_suffix() {
+        var rule = classes()
+                .that().resideInAPackage("..domain.service..")
+                .and().areAnnotatedWith(Adapter.class)
+                .should().haveSimpleNameEndingWith("Service")
+                .andShould(haveAdapterType(Adapter.AdapterType.INBOUND))
+                .as("INBOUND devem ficar em '..domain.service..', terminar com 'Service' e usar @Adapter(INBOUND)");
+
+        rule.check(importedClasses);
+    }
+
+    @Test
+    @DisplayName("OUTBOUND: Adapters em '..infrastructure..adapter..' devem ter sufixo 'Adapter' e @Adapter(OUTBOUND)")
+    void outbound_adapters_should_be_in_adapter_package_and_have_adapter_suffix() {
+        var rule = classes()
+                .that().resideInAPackage("..infrastructure..adapter..")
+                .and().areAnnotatedWith(Adapter.class)
+                .should().haveSimpleNameEndingWith("Adapter")
+                .andShould(haveAdapterType(Adapter.AdapterType.OUTBOUND))
+                .as("OUTBOUND devem ficar em '..infrastructure..adapter..', terminar com 'Adapter' e usar @Adapter(OUTBOUND)");
+
         rule.check(importedClasses);
     }
 
@@ -80,4 +112,20 @@ public class NamingConventionTest {
             
         rule.check(importedClasses);
     }
+
+    private static ArchCondition<JavaClass> haveAdapterType(Adapter.AdapterType expected) {
+        return new ArchCondition<>("ter @Adapter(type=" + expected + ")") {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                Adapter ann = item.reflect().getAnnotation(Adapter.class);
+                boolean ok = ann != null && ann.type() == expected;
+                if (!ok) {
+                    events.add(SimpleConditionEvent.violated(
+                            item, "Esperado @Adapter(type=" + expected + ") em " + item.getName()
+                    ));
+                }
+            }
+        };
+    }
+
 }

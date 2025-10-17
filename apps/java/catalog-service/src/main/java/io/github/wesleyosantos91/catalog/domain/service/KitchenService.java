@@ -1,6 +1,8 @@
 package io.github.wesleyosantos91.catalog.domain.service;
 
+import io.github.wesleyosantos91.catalog.core.annotation.Adapter;
 import io.github.wesleyosantos91.catalog.core.mapper.KitchenMapper;
+import io.github.wesleyosantos91.catalog.core.port.in.kitchen.KitchenServicePort;
 import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.BusinessException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
@@ -21,11 +23,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
-public class KitchenService {
+@Adapter(type = Adapter.AdapterType.INBOUND, description = "Kitchen Service Adapter")
+public class KitchenService implements KitchenServicePort {
 
     public static final String DATABASE_ERROR = "DATABASE_ERROR";
     private static final Logger LOGGER = LoggerFactory.getLogger(KitchenService.class);
