@@ -204,8 +204,8 @@ class KitchenControllerContractIT {
                 .contentType(ContentType.JSON)
                 .body(matchesJsonSchemaInClasspath("schemas/kitchen-page-response-schema.json"))
                 .body("content.size()", equalTo(2))
-                .body("page.totalElements", equalTo(2))
-                .body("page.totalPages", equalTo(1));
+                .body("page.total_elements", equalTo(2))
+                .body("page.total_pages", equalTo(1));
         }
 
         @Test
@@ -249,8 +249,8 @@ class KitchenControllerContractIT {
                 .contentType(ContentType.JSON)
                 .body(matchesJsonSchemaInClasspath("schemas/kitchen-page-response-schema.json"))
                 .body("content.size()", equalTo(2))
-                .body("page.totalElements", equalTo(5))
-                .body("page.totalPages", equalTo(3))
+                .body("page.total_elements", equalTo(5))
+                .body("page.total_pages", equalTo(3))
                 .body("page.number", equalTo(0))
                 .body("page.size", equalTo(2));
         }
@@ -267,8 +267,8 @@ class KitchenControllerContractIT {
                 .contentType(ContentType.JSON)
                 .body(matchesJsonSchemaInClasspath("schemas/kitchen-page-response-schema.json"))
                 .body("content.size()", equalTo(0))
-                .body("page.totalElements", equalTo(0))
-                .body("page.totalPages", equalTo(0));
+                .body("page.total_elements", equalTo(0))
+                .body("page.total_pages", equalTo(0));
         }
     }
 

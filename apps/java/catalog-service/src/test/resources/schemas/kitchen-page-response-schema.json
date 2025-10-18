@@ -31,16 +31,16 @@
           "type": "integer",
           "minimum": 0
         },
-        "totalElements": {
+        "total_elements": {
           "type": "integer",
           "minimum": 0
         },
-        "totalPages": {
+        "total_pages": {
           "type": "integer",
           "minimum": 0
         }
       },
-      "required": ["size", "number", "totalElements", "totalPages"],
+      "required": ["size", "number", "total_elements", "total_pages"],
       "additionalProperties": false
     }
   },

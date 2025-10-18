@@ -50,6 +50,6 @@
       "type": "string"
     }
   },
-  "required": ["type", "title", "status", "detail", "instance", "timestamp"],
+  "required": ["type", "title", "status", "detail", "instance"],
   "additionalProperties": true
 }

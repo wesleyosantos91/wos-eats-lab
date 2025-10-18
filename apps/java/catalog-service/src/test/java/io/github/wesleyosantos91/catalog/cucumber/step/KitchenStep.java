@@ -127,7 +127,7 @@ public class KitchenStep {
     @E("a resposta deve conter pelo menos {int} cozinhas")
     public void aRespostaDeveConterPeloMenosCozinhas(int expectedMinCount) {
         assertNotNull(response.getBody());
-        Integer totalElements = JsonPath.parse(response.getBody()).read("$.page.totalElements");
+        Integer totalElements = JsonPath.parse(response.getBody()).read("$.page.total_elements");
         assertTrue(totalElements >= expectedMinCount,
                 "Expected at least " + expectedMinCount + " kitchens, but found " + totalElements);
     }

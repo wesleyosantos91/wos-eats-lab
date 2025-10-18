@@ -74,7 +74,7 @@ public class RestaurantStep {
 
         UUID kitchenId = criarCozinhaParaTeste("Italiana");
         
-        String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 5.99}", 
+        String requestBody = String.format("{\"name\": \"%s\", \"kitchen_id\": \"%s\", \"delivery_fee\": 5.99}", 
                 nome, kitchenId);
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
@@ -111,7 +111,7 @@ public class RestaurantStep {
 
         createdKitchenId = criarCozinhaParaTeste("Cozinha Teste");
         
-        String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 5.99}", 
+        String requestBody = String.format("{\"name\": \"%s\", \"kitchen_id\": \"%s\", \"delivery_fee\": 5.99}", 
                 nome, createdKitchenId);
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
@@ -138,7 +138,7 @@ public class RestaurantStep {
             String nome = row.get("nome");
             UUID kitchenId = criarCozinhaParaTeste("Cozinha para " + nome);
             
-            String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 5.99}", 
+            String requestBody = String.format("{\"name\": \"%s\", \"kitchen_id\": \"%s\", \"delivery_fee\": 5.99}", 
                     nome, kitchenId);
             HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
             restTemplate.postForEntity(baseUrl, request, String.class);
@@ -153,7 +153,7 @@ public class RestaurantStep {
     @E("a resposta deve conter pelo menos {int} restaurantes")
     public void aRespostaDeveConterPeloMenosRestaurantes(int expectedMinCount) {
         assertNotNull(response.getBody());
-        Integer totalElements = JsonPath.parse(response.getBody()).read("$.page.totalElements");
+        Integer totalElements = JsonPath.parse(response.getBody()).read("$.page.total_elements");
         assertTrue(totalElements >= expectedMinCount,
                 "Expected at least " + expectedMinCount + " restaurants, but found " + totalElements);
     }
@@ -163,7 +163,7 @@ public class RestaurantStep {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 7.99, \"active\": true}", 
+        String requestBody = String.format("{\"name\": \"%s\", \"kitchen_id\": \"%s\", \"delivery_fee\": 7.99, \"active\": true}", 
                 novoNome, createdKitchenId);
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
@@ -192,7 +192,7 @@ public class RestaurantStep {
 
         UUID kitchenId = criarCozinhaParaTeste("Cozinha Teste Duplicado");
         
-        String requestBody = String.format("{\"name\": \"%s\", \"kitchenId\": \"%s\", \"deliveryFee\": 5.99}", 
+        String requestBody = String.format("{\"name\": \"%s\", \"kitchen_id\": \"%s\", \"delivery_fee\": 5.99}",
                 nome, kitchenId);
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 

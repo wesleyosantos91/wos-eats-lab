@@ -327,8 +327,8 @@ class RestaurantControllerContractIT {
                     .body("content", hasSize(greaterThanOrEqualTo(3)))
                     .body("page.number", equalTo(0))
                     .body("page.size", equalTo(10))
-                    .body("page.totalElements", greaterThanOrEqualTo(3))
-                    .body("page.totalPages", greaterThanOrEqualTo(1));
+                    .body("page.total_elements", greaterThanOrEqualTo(3))
+                    .body("page.total_pages", greaterThanOrEqualTo(1));
         }
 
         @Test
