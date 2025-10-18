@@ -37,8 +37,8 @@ public record ProductController(ProductServicePort service) {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProductController.class);
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ProductResponse> create(@Validated(Groups.Create.class) @RequestBody ProductRequest request,
-                                                  @RequestParam("image") MultipartFile imageFile) {
+    public ResponseEntity<ProductResponse> create(@Validated(Groups.Create.class) @ModelAttribute ProductRequest request,
+                                                  @RequestParam(value = "image", required = false) MultipartFile imageFile) {
 
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -79,7 +79,7 @@ public record ProductController(ProductServicePort service) {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductResponse> update(@PathVariable UUID id,
                                                   @Validated(Groups.Update.class)
-                                                  @RequestBody ProductRequest request,
+                                                  @ModelAttribute ProductRequest request,
                                                   @RequestParam("image") MultipartFile imageFile) throws ResourceNotFoundException {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -118,6 +118,18 @@ public record ProductController(ProductServicePort service) {
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + product.imageKey() + "\"")
                 .body(product.image());
+    }
+
+    @DeleteMapping("/{id}/image")
+    public ResponseEntity<ProductResponse> deleteImage(@PathVariable UUID id) {
+        final StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        LOGGER.debug("Function started 'deleteImage product' with id {}", id);
+        final var response = ProductMapper.MAPPER.toResponse(service.deleteImage(id));
+        stopWatch.stop();
+        LOGGER.debug("finished function with sucess 'deleteImage product' in {} ms", stopWatch.getTotalTimeMillis());
+
+        return ResponseEntity.ok(response);
     }
 
 

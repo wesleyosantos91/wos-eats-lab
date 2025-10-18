@@ -1,0 +1,416 @@
+type: collection.insomnia.rest/5.0
+name: wos-eats-lab
+meta:
+  id: wrk_23c6017df86a4ad0b6cca95a57b90ea0
+  created: 1760800304133
+  modified: 1760800304133
+  description: ""
+collection:
+  - name: Catalog API
+    meta:
+      id: fld_c091f861eee7489185dc88787b7b40bc
+      created: 1760800331745
+      modified: 1760800345237
+      sortKey: -1760800331745
+      description: ""
+    children:
+      - name: 🍽️ Kitchens
+        meta:
+          id: fld_6dd626e6e8184f21811297464ca65616
+          created: 1760800353769
+          modified: 1760800353769
+          sortKey: -1760800353769
+          description: ""
+        children:
+          - url: ""
+            name: DELETE Delete Kitchen
+            meta:
+              id: req_0ed5cf65cad94652989948bf4d1de821
+              created: 1760800358440
+              modified: 1760800374566
+              isPrivate: false
+              description: ""
+              sortKey: -1760800358440
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: PUT Update Kitchen
+            meta:
+              id: req_200f77da202b4c7e8c95e37ab3bf6c26
+              created: 1760800376743
+              modified: 1760800382008
+              isPrivate: false
+              description: ""
+              sortKey: -1760800376743
+            method: PUT
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.host_catalog }}/{{ _.port_catalog }}/{{ _.api_version }}/{{
+              _.domain_kitchen }}"
+            name: GET Search Kitchens
+            meta:
+              id: req_64b486062822419d9be7fa580cab583d
+              created: 1760800391388
+              modified: 1760802352440
+              isPrivate: false
+              description: ""
+              sortKey: -1760800391388
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: "GET Get Kitchen by ID  "
+            meta:
+              id: req_7787e1ce277d4b3da759accb95511d52
+              created: 1760800398791
+              modified: 1760800400485
+              isPrivate: false
+              description: ""
+              sortKey: -1760800398791
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: POST Create Kitchen
+            meta:
+              id: req_1779f6b10c6d401195851371f1cc55f7
+              created: 1760800405698
+              modified: 1760802150776
+              isPrivate: false
+              description: ""
+              sortKey: -1760800405698
+            method: POST
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: 🍴 Restaurants
+        meta:
+          id: fld_13662e30476640559c87ee5494431153
+          created: 1760800429593
+          modified: 1760800429593
+          sortKey: -1760800342757
+          description: ""
+        children:
+          - url: ""
+            name: DELETE Delete Restaurants
+            meta:
+              id: req_44d994df68ad4c929a4b3452ab61388e
+              created: 1760800429593
+              modified: 1760800450392
+              isPrivate: false
+              description: ""
+              sortKey: -1760800358440
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: PUT Update Restaurants
+            meta:
+              id: req_201e72932d6646ef81cf14593b6f64ec
+              created: 1760800429596
+              modified: 1760800446417
+              isPrivate: false
+              description: ""
+              sortKey: -1760800376743
+            method: PUT
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: GET Search Restaurants
+            meta:
+              id: req_bbdd6588ddb843c7be0982876f46c8c5
+              created: 1760800429597
+              modified: 1760800441742
+              isPrivate: false
+              description: ""
+              sortKey: -1760800391388
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: POST Create Restaurants
+            meta:
+              id: req_2a6b2998ef064f33aa68c89b334adf05
+              created: 1760800429598
+              modified: 1760800433105
+              isPrivate: false
+              description: ""
+              sortKey: -1760800405698
+            method: POST
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: "GET Get Restaurants by ID  "
+            meta:
+              id: req_cd9f24d1fce74518b65c1d8ec663117c
+              created: 1760800429598
+              modified: 1760800436455
+              isPrivate: false
+              description: ""
+              sortKey: -1760800398791
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: 🛒 Products
+        meta:
+          id: fld_ab8b6e20a4294bb0b763fc01c44dd979
+          created: 1760800460591
+          modified: 1760800460591
+          sortKey: -1760800337251
+          description: ""
+        children:
+          - url: ""
+            name: DELETE Delete Product
+            meta:
+              id: req_a4aec22062f24d14bfc3266540ba59a9
+              created: 1760800460591
+              modified: 1760800482065
+              isPrivate: false
+              description: ""
+              sortKey: -1760800358440
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: PUT Update Product
+            meta:
+              id: req_cbb37285b9a44363a7fde9a00cef30df
+              created: 1760800460592
+              modified: 1760800479649
+              isPrivate: false
+              description: ""
+              sortKey: -1760800376743
+            method: PUT
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: GET Search Product
+            meta:
+              id: req_39043d2c59e84041aa93239f4c0732d8
+              created: 1760800460593
+              modified: 1760800476795
+              isPrivate: false
+              description: ""
+              sortKey: -1760800391388
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: POST Create Product
+            meta:
+              id: req_5fa43de3f790408e878bc47f8a9e2627
+              created: 1760800460593
+              modified: 1760800470071
+              isPrivate: false
+              description: ""
+              sortKey: -1760800405698
+            method: POST
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: "GET Get Product by ID  "
+            meta:
+              id: req_97de27c734134d24b79c09fa4e89c589
+              created: 1760800460594
+              modified: 1760800473979
+              isPrivate: false
+              description: ""
+              sortKey: -1760800398791
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: GET Get Product Image
+            meta:
+              id: req_ba936106ed1a45cdb1855232460d0aa2
+              created: 1760800496279
+              modified: 1760800496279
+              isPrivate: false
+              description: ""
+              sortKey: -1760800395089.5
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: ""
+            name: DELETE Delete Product Image
+            meta:
+              id: req_f870d16de4684d51b7c3223b350a73c7
+              created: 1760800508346
+              modified: 1760800508346
+              isPrivate: false
+              description: ""
+              sortKey: -1746035039080
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_9ee3e9345cf05cc6a9707c48873bf59f806b0c59
+    created: 1760800304136
+    modified: 1760800304136
+environments:
+  name: Base Environment
+  meta:
+    id: env_9ee3e9345cf05cc6a9707c48873bf59f806b0c59
+    created: 1760800304135
+    modified: 1760802340652
+    isPrivate: false
+  data:
+    host_catalog: locahost
+    port_catalog: "8090"
+    api_version: v1
+    domain_kitchen: kitchens
