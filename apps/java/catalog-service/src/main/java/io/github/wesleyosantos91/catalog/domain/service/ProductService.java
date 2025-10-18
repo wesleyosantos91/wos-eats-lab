@@ -3,6 +3,7 @@ package io.github.wesleyosantos91.catalog.domain.service;
 import io.github.wesleyosantos91.catalog.core.annotation.Adapter;
 import io.github.wesleyosantos91.catalog.core.mapper.ProductMapper;
 import io.github.wesleyosantos91.catalog.core.port.in.product.ProductServicePort;
+import io.github.wesleyosantos91.catalog.core.port.out.storage.StoragePort;
 import io.github.wesleyosantos91.catalog.domain.entity.ProductEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.BusinessException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
@@ -12,6 +13,7 @@ import io.github.wesleyosantos91.catalog.domain.repository.ProductRepository;
 import io.github.wesleyosantos91.catalog.domain.repository.RestaurantRepository;
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
+import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,26 +27,33 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Adapter(type = Adapter.AdapterType.INBOUND, description = "Product Service Adapter")
 public class ProductService implements ProductServicePort {
 
     public static final String DATABASE_ERROR = "DATABASE_ERROR";
     public static final String NAME = "name";
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProductServicePort.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductService.class);
     private static final String RESOURCE_NAME = "Product";
     public static final String DATA_INTEGRITY_VIOLATION = "DATA_INTEGRITY_VIOLATION";
+    public static final String IMAGE_UPLOAD_ERROR = "IMAGE_UPLOAD_ERROR";
 
     private final ProductRepository repository;
     private final RestaurantRepository restaurantRepository;
+    private final StoragePort storagePort;
 
-    public ProductService(ProductRepository repository, RestaurantRepository restaurantRepository) {
+    public ProductService(ProductRepository repository,
+                          RestaurantRepository restaurantRepository,
+                          StoragePort storagePort) {
+
         this.repository = repository;
         this.restaurantRepository = restaurantRepository;
+        this.storagePort = storagePort;
     }
 
     @Transactional
-    public ProductModel create(ProductModel model) {
+    public ProductModel create(ProductModel model, MultipartFile imageFile) {
         LOGGER.info("Creating new product with name: {} for restaurant: {}", model.name(), model.restaurant().id());
 
         try {
@@ -61,6 +70,10 @@ public class ProductService implements ProductServicePort {
             final ProductEntity productEntity = ProductMapper.MAPPER.toEntity(model);
             final ProductEntity savedEntity = repository.save(productEntity);
 
+            final String imageKey = storagePort.uploadFile(imageFile);
+
+            savedEntity.setImageKey(imageKey);
+
             LOGGER.info("Product created successfully with id: {}", savedEntity.getId());
             return ProductMapper.MAPPER.toModel(savedEntity);
 
@@ -69,6 +82,8 @@ public class ProductService implements ProductServicePort {
 
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while creating product. name=" + model.name(), ex, DATABASE_ERROR);
+        } catch (IOException e) {
+            throw new BusinessException("Error uploading image", e, IMAGE_UPLOAD_ERROR);
         }
     }
 
@@ -122,38 +137,44 @@ public class ProductService implements ProductServicePort {
 
     @CacheEvict(value = "products", key = "#id")
     @Transactional
-    public ProductModel update(UUID id, ProductModel model) {
+    public ProductModel update(UUID id, ProductModel model, MultipartFile imageFile) {
         LOGGER.info("Updating product with id: {}", id);
 
         try {
             final Optional<ProductEntity> existingProduct = repository.findByIdWithRestaurant(id);
             final ProductEntity current = existingProduct.orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id.toString()));
 
-            if (!Objects.equals(current.getRestaurant().getId(), model.restaurant().id())) {
-                if (!restaurantRepository.existsById(model.restaurant().id())) {
-                    LOGGER.warn("Attempt to update product to non-existing restaurant: {}", model.restaurant().id());
-                    throw new ResourceNotFoundException("Restaurant", model.restaurant().id().toString());
-                }
+            if (!Objects.equals(current.getRestaurant().getId(), model.restaurant().id())
+                    && !restaurantRepository.existsById(model.restaurant().id())) {
+                throw new ResourceNotFoundException("Restaurant", model.restaurant().id().toString());
             }
 
             if ((!Objects.equals(current.getName(), model.name()) || !Objects.equals(current.getRestaurant().getId(), model.restaurant().id()))
                     && repository.existsByNameAndRestaurantId(model.name(), model.restaurant().id())) {
-                LOGGER.warn("Attempt to update product name to existing name: {} for restaurant: {} "
-                        + "and id: {}", model.name(), model.restaurant().id(), id);
                 throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
             }
 
             final ProductEntity updatedProduct = ProductMapper.MAPPER.toEntity(model, current);
+            final String imageOldKey = current.getImageKey();
+            final String imageNewKey = processImageUpload(imageFile);
+
+            final boolean imageKeyIsNull = Objects.isNull(imageNewKey);
+
+            updatedProduct.setImageKey(imageKeyIsNull ? imageOldKey : imageNewKey);
+
             final ProductEntity savedEntity = repository.save(updatedProduct);
+
+            deleteOldImageIfNewIsPresent(imageNewKey, imageOldKey);
 
             LOGGER.info("Product updated successfully with id: {}", id);
             return ProductMapper.MAPPER.toModel(savedEntity);
 
         } catch (DataIntegrityViolationException _) {
             throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
-
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while updating product. id=" + id + ", name=" + model.name(), ex, DATABASE_ERROR);
+        } catch (IOException e) {
+            throw new BusinessException("Error uploading image", e, IMAGE_UPLOAD_ERROR);
         }
     }
 
@@ -163,22 +184,62 @@ public class ProductService implements ProductServicePort {
         LOGGER.info("Deleting product with id: {}", id);
 
         try {
-            if (!repository.existsById(id)) {
-                LOGGER.warn("Attempt to delete non-existing product with id: {}", id);
-                throw new ResourceNotFoundException(RESOURCE_NAME, id.toString());
-            }
+            final var entity = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id.toString()));
 
-            repository.deleteById(id);
+            repository.delete(entity);
+            storagePort.deleteFile(entity.getImageKey());
+
             LOGGER.info("Product deleted successfully with id: {}", id);
 
         } catch (EmptyResultDataAccessException _) {
             throw new ResourceNotFoundException(RESOURCE_NAME, id.toString());
-
         } catch (DataIntegrityViolationException ex) {
             throw new BusinessException("Cannot delete product as it is referenced by other entities. id=" + id, ex, DATA_INTEGRITY_VIOLATION);
-
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while deleting product. id=" + id, ex, DATABASE_ERROR);
+        }
+    }
+
+    @CacheEvict(value = "products", key = "#id")
+    @Transactional
+    public ProductModel deleteImage(UUID id) {
+        final var entity = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id.toString()));
+
+        if (entity.getImageKey() == null) {
+            throw new ResourceNotFoundException("Product image", id.toString());
+        }
+
+        storagePort.deleteFile(entity.getImageKey());
+
+        entity.setImageKey(null);
+
+        return ProductMapper.MAPPER.toModel(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public ProductModel getImage(UUID id) {
+        final var entity = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id.toString()));
+
+        if (entity.getImageKey() == null) {
+            throw new ResourceNotFoundException("Product image", id.toString());
+        }
+
+        final byte[] bytes = storagePort.downloadFile(entity.getImageKey());
+
+        return new ProductModel(entity.getImageKey(), bytes);
+    }
+
+    private String processImageUpload(MultipartFile imageFile) throws IOException {
+        if (imageFile != null && !imageFile.isEmpty()) {
+            return storagePort.uploadFile(imageFile);
+        }
+
+        return null;
+    }
+
+    private void deleteOldImageIfNewIsPresent(String imageNewKey, String imageOldKey) {
+        if (imageNewKey != null) {
+            storagePort.deleteFile(imageOldKey);
         }
     }
 }

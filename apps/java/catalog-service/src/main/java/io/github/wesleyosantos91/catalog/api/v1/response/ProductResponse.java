@@ -15,5 +15,6 @@ public record ProductResponse(
         String description,
         BigDecimal price,
         Boolean active,
-        String imageKey
+        String imageKey,
+        String imagePath
 ) {}

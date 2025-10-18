@@ -47,7 +47,6 @@ public class KitchenService implements KitchenServicePort {
 
         try {
             if (repository.existsByName(model.name())) {
-                LOGGER.warn("Attempt to create kitchen with existing name: {}", model.name());
                 throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
             }
 
@@ -59,7 +58,6 @@ public class KitchenService implements KitchenServicePort {
 
         } catch (DataIntegrityViolationException _) {
             throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
-
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while creating kitchen. name=" + model.name(), ex, DATABASE_ERROR);
         }
@@ -74,7 +72,6 @@ public class KitchenService implements KitchenServicePort {
             final Optional<KitchenEntity> kitchenOpt = repository.findById(id);
 
             if (kitchenOpt.isEmpty()) {
-                LOGGER.warn("Kitchen not found with id: {}", id);
                 throw new ResourceNotFoundException(RESOURCE_NAME, id.toString());
             }
 
@@ -121,7 +118,6 @@ public class KitchenService implements KitchenServicePort {
 
             if (!Objects.equals(current.getName(), model.name())
                     && repository.existsByName(model.name())) {
-                LOGGER.warn("Attempt to update kitchen name to existing name: {} for id: {}", model.name(), id);
                 throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
             }
 
@@ -133,7 +129,6 @@ public class KitchenService implements KitchenServicePort {
 
         } catch (DataIntegrityViolationException _) {
             throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
-
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while updating kitchen. id=" + id + ", name=" + model.name(), ex, DATABASE_ERROR);
         }
@@ -146,7 +141,6 @@ public class KitchenService implements KitchenServicePort {
 
         try {
             if (!repository.existsById(id)) {
-                LOGGER.warn("Attempt to delete non-existing kitchen with id: {}", id);
                 throw new ResourceNotFoundException(RESOURCE_NAME, id.toString());
             }
 
@@ -155,10 +149,8 @@ public class KitchenService implements KitchenServicePort {
 
         } catch (EmptyResultDataAccessException _) {
             throw new ResourceNotFoundException(RESOURCE_NAME, id.toString());
-
         } catch (DataIntegrityViolationException ex) {
             throw new BusinessException("Cannot delete kitchen as it is referenced by other entities. id=" + id, ex, DATA_INTEGRITY_VIOLATION);
-
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while deleting kitchen. id=" + id, ex, DATABASE_ERROR);
         }

@@ -47,16 +47,6 @@ spring:
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
     schemas: catalog_schema
-  cloud:
-    aws:
-      s3:
-        bucket: wos-eats-lab-catalog-bucket
-        region: us-east-1
-        path-style-access-enabled: true
-        endpoint: http://localhost:4566
-      credentials:
-        access-key: test
-        secret-key: test
   data:
     redis:
       host: localhost
@@ -112,15 +102,16 @@ management:
       my_custom_tag: ${spring.application.name}
 
 s3:
-  endpoint-url: https://localhost.localstack.cloud:4566
+  endpoint-url: http://localhost:4566
   region: us-east-1
   access-key: test
   secret-key: test
   bucket-name: wos-eats-catalog
-  max-size-bytes: 5242880
+  max-size-bytes: 5242880 # 5MB
   allowed-content-types:
     - image/jpeg
     - image/png
+    - image/jpg
 
 #resilience4j:
 #  retry:

@@ -22,14 +22,14 @@
 - Testes automatizados (unitários, integração, arquitetura)
 
 ```text
-┌──────────────┐   ┌──────────────┐   ┌──────────────┐
-│    API       │   │    Core      │   │   Domain     │
-│   (REST)     │──▶│ (Use Cases)  │──▶│ (Entities)   │
-└──────────────┘   └──────────────┘   └──────────────┘
+┌──────────────┐   ┌──────────────┐   ┌───────────────┐
+│    API       │   │    Core      │   │   Domain      │
+│   (REST)     │──▶│ (Use Cases)  │──▶│  (Entities)   │
+└──────────────┘   └──────────────┘   └───────────────┘
         │                │                 │
         ▼                ▼                 ▼
 ┌────────────────────────────────────────────────────┐
-│              Infrastructure (JPA, DB)              │
+│              Infrastructure (JPA, DB, S3)          │
 └────────────────────────────────────────────────────┘
 ```
 
@@ -59,7 +59,7 @@ O Catalog Service trabalha com três domínios principais, cada um com suas enti
   - **Response:** `RestaurantResponse`
 
 - **Product (Produto)**
-  - Representa os itens do cardápio de cada restaurante, com nome, descrição, preço, disponibilidade, etc.
+  - Representa os itens do cardápio de cada restaurante, com nome, descrição, preço, disponibilidade, imagem, etc.
   - **Entidades/Modelos:** `ProductEntity`, `ProductModel`
   - **Request:** `ProductRequest` (criação/atualização), `ProductQueryRequest` (filtros)
   - **Response:** `ProductResponse`
@@ -73,44 +73,48 @@ O Catalog Service trabalha com três domínios principais, cada um com suas enti
 ## 📚 API - Endpoints Principais
 
 ### 🍽️ Kitchens
-- `POST /v1/kitchens`  
+- `POST /v1/kitchens`
   Cria uma nova cozinha.
-- `GET /v1/kitchens/{id}`  
+- `GET /v1/kitchens/{id}`
   Busca uma cozinha pelo ID.
-- `GET /v1/kitchens`  
+- `GET /v1/kitchens`
   Lista/pesquisa cozinhas com filtros e paginação.
-- `PUT /v1/kitchens/{id}`  
+- `PUT /v1/kitchens/{id}`
   Atualiza uma cozinha existente.
-- `DELETE /v1/kitchens/{id}`  
+- `DELETE /v1/kitchens/{id}`
   Remove uma cozinha.
 
 ---
 
 ### 🍴 Restaurants
-- `POST /v1/restaurants`  
+- `POST /v1/restaurants`
   Cria um novo restaurante.
-- `GET /v1/restaurants/{id}`  
+- `GET /v1/restaurants/{id}`
   Busca um restaurante pelo ID.
-- `GET /v1/restaurants`  
+- `GET /v1/restaurants`
   Lista/pesquisa restaurantes com filtros e paginação.
-- `PUT /v1/restaurants/{id}`  
+- `PUT /v1/restaurants/{id}`
   Atualiza um restaurante existente.
-- `DELETE /v1/restaurants/{id}`  
+- `DELETE /v1/restaurants/{id}`
   Remove um restaurante.
 
 ---
 
 ### 🛒 Products
-- `POST /v1/products`  
+- `POST /v1/products`
   Cria um novo produto.
-- `GET /v1/products/{id}`  
+- `GET /v1/products/{id}`
   Busca um produto pelo ID.
-- `GET /v1/products`  
+- `GET /v1/products/{id}/image`
+  Busca a imagem de um produto pelo ID.
+- `GET /v1/products`
   Lista/pesquisa produtos com filtros e paginação.
-- `PUT /v1/products/{id}`  
+- `PUT /v1/products/{id}`
   Atualiza um produto existente.
-- `DELETE /v1/products/{id}`  
+- `DELETE /v1/products/{id}`
   Remove um produto.
+- `DELETE /v1/products/{id}/image`
+  Remove a imagem de um produto.
 
 ---
 
@@ -232,3 +236,4 @@ mvn clean install -U
 ---
 
 *Este README faz parte do projeto [wos-eats-lab](../../README.md)*
+

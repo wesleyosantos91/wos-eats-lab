@@ -51,12 +51,10 @@ public class RestaurantService implements RestaurantServicePort {
 
         try {
             if (!kitchenRepository.existsById(model.kitchenId())) {
-                LOGGER.warn("Attempt to create restaurant for non-existing kitchen: {}", model.kitchenId());
                 throw new ResourceNotFoundException(KITCHEN_RESOURCE_NAME, model.kitchenId().toString());
             }
 
             if (repository.existsByName(model.name())) {
-                LOGGER.warn("Attempt to create restaurant with existing name: {}", model.name());
                 throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
             }
 
@@ -68,7 +66,6 @@ public class RestaurantService implements RestaurantServicePort {
 
         } catch (DataIntegrityViolationException _) {
             throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
-
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while creating restaurant. name=" + model.name(), ex, DATABASE_ERROR);
         }
@@ -83,7 +80,6 @@ public class RestaurantService implements RestaurantServicePort {
             final Optional<RestaurantEntity> restaurantOpt = repository.findById(id);
 
             if (restaurantOpt.isEmpty()) {
-                LOGGER.warn("Restaurant not found with id: {}", id);
                 throw new ResourceNotFoundException(RESOURCE_NAME, id.toString());
             }
 
@@ -131,16 +127,13 @@ public class RestaurantService implements RestaurantServicePort {
             final Optional<RestaurantEntity> existingRestaurant = repository.findByIdWithKitchen(id);
             final RestaurantEntity current = existingRestaurant.orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id.toString()));
 
-            if (!Objects.equals(current.getKitchen().getId(), model.kitchen().id())) {
-                if (!kitchenRepository.existsById(model.kitchen().id())) {
-                    LOGGER.warn("Attempt to update restaurant to non-existing kitchen: {}", model.kitchen().id());
-                    throw new ResourceNotFoundException(KITCHEN_RESOURCE_NAME, model.kitchen().id().toString());
-                }
+            if (!Objects.equals(current.getKitchen().getId(), model.kitchen().id()) && !kitchenRepository.existsById(model.kitchen().id())) {
+                throw new ResourceNotFoundException(KITCHEN_RESOURCE_NAME, model.kitchen().id().toString());
             }
+
 
             if (!Objects.equals(current.getName(), model.name())
                     && repository.existsByName(model.name())) {
-                LOGGER.warn("Attempt to update restaurant name to existing name: {} for id: {}", model.name(), id);
                 throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
             }
 
@@ -152,7 +145,6 @@ public class RestaurantService implements RestaurantServicePort {
 
         } catch (DataIntegrityViolationException _) {
             throw new ResourceAlreadyExistsException(RESOURCE_NAME, NAME, model.name());
-
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while updating restaurant. id=" + id + ", name=" + model.name(), ex, DATABASE_ERROR);
         }
@@ -165,7 +157,6 @@ public class RestaurantService implements RestaurantServicePort {
 
         try {
             if (!repository.existsById(id)) {
-                LOGGER.warn("Attempt to delete non-existing restaurant with id: {}", id);
                 throw new ResourceNotFoundException(RESOURCE_NAME, id.toString());
             }
 
@@ -174,10 +165,8 @@ public class RestaurantService implements RestaurantServicePort {
 
         } catch (EmptyResultDataAccessException _) {
             throw new ResourceNotFoundException(RESOURCE_NAME, id.toString());
-
         } catch (DataIntegrityViolationException ex) {
             throw new BusinessException("Cannot delete restaurant as it is referenced by other entities. id=" + id, ex, DATA_INTEGRITY_VIOLATION);
-
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while deleting restaurant. id=" + id, ex, DATABASE_ERROR);
         }

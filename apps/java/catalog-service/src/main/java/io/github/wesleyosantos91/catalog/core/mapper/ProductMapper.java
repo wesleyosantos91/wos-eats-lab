@@ -10,6 +10,7 @@ import io.github.wesleyosantos91.catalog.domain.entity.ProductEntity;
 import io.github.wesleyosantos91.catalog.domain.model.ProductModel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -39,7 +40,15 @@ public interface ProductMapper {
 
     ProductEntity toEntity(ProductModel model, @MappingTarget ProductEntity entity);
 
+    @Mapping(target = "imagePath", expression = "java(toImagePath(model.id(), model.imageKey()))")
     ProductResponse toResponse(ProductModel model);
+
+    default String toImagePath(UUID productId, String imageKey) {
+        if (imageKey == null || imageKey.isBlank()) {
+            return null;
+        }
+        return "/v1/products/" + productId + "/image";
+    }
 
     default List<ProductModel> toListDomain(List<ProductEntity> entities) {
         final List<ProductModel> list = new ArrayList<>();

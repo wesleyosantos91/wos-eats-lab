@@ -22,8 +22,5 @@ public record ProductRequest(
         @Positive
         BigDecimal price,
 
-        Boolean active,
-
-        @Size(max = 255)
-        String imageKey
+        Boolean active
 ) {}

@@ -12,11 +12,17 @@ public record ProductModel(
         BigDecimal price,
         Boolean active,
         String imageKey,
+        byte[] image,
         BigDecimal minPrice,
         BigDecimal maxPrice
 ) implements Serializable {
 
     public ProductModel(UUID restaurantId, String name, String description, BigDecimal price, Boolean active, String imageKey) {
-        this(null, new RestaurantModel(restaurantId, null, null, null, null, null, null), name, description, price, active, imageKey, null, null);
+        this(null, new RestaurantModel(restaurantId, null, null, null, null, null, null),
+                name, description, price, active, imageKey, null, null, null);
+    }
+
+    public ProductModel(String imageKey, byte[] image) {
+        this(null, null, null, null, null, null, imageKey, image, null, null);
     }
 }
