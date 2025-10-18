@@ -36,6 +36,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.Mockito.mock;
+
 @WebMvcTest(ProductController.class)
 @DisplayName("ProductController - Unit Tests")
 class ProductControllerTest {
@@ -221,6 +223,30 @@ class ProductControllerTest {
 
             verify(productService, times(1)).update(eq(productId), any(ProductModel.class), any());
         }
+
+    @Test
+    @DisplayName("Deve atualizar produto sem imagem")
+        void shouldUpdateProductWithoutImage() throws Exception {
+            productEntity.setName("Pizza Prosciutto");
+            productEntity.setPrice(new BigDecimal("30.00"));
+
+            when(productService.update(eq(productId), any(ProductModel.class), eq(null)))
+                    .thenReturn(ProductMapper.MAPPER.toModel(productEntity));
+
+            mockMvc.perform(multipart("/v1/products/{id}", productId)
+                            .param("restaurant_id", restaurantId.toString())
+                            .param("name", "Pizza Prosciutto")
+                            .param("description", "With ham")
+                            .param("price", "30.00")
+                            .param("active", "true")
+                            .with(request -> { request.setMethod("PUT"); return request; }))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(productId.toString()))
+                    .andExpect(jsonPath("$.name").value("Pizza Prosciutto"))
+                    .andExpect(jsonPath("$.price").value(30.00));
+
+            verify(productService, times(1)).update(eq(productId), any(ProductModel.class), eq(null));
+        }
     }
 
     @Nested
@@ -269,6 +295,53 @@ class ProductControllerTest {
 
             verify(productService, times(1)).getImage(productId);
         }
+
+    @Test
+    @DisplayName("Deve retornar bytes da imagem com content type default")
+        void shouldReturnImageBytesWithDefaultContentType() throws Exception {
+            var model = ProductMapper.MAPPER.toModel(productEntity);
+            model = new ProductModel("image.gif", new byte[]{4,5,6});
+
+            when(productService.getImage(productId)).thenReturn(model);
+
+            mockMvc.perform(get("/v1/products/{id}/image", productId))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType("application/octet-stream"))
+                    .andExpect(content().bytes(new byte[]{4,5,6}));
+
+            verify(productService, times(1)).getImage(productId);
+        }
+
+    @Test
+    @DisplayName("Deve retornar bytes da imagem com content type png")
+        void shouldReturnImageBytesPng() throws Exception {
+            var model = ProductMapper.MAPPER.toModel(productEntity);
+            model = new ProductModel("image.png", new byte[]{7,8,9});
+
+            when(productService.getImage(productId)).thenReturn(model);
+
+            mockMvc.perform(get("/v1/products/{id}/image", productId))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType("image/png"))
+                    .andExpect(content().bytes(new byte[]{7,8,9}));
+
+            verify(productService, times(1)).getImage(productId);
+        }
+
+    @Test
+    @DisplayName("Deve retornar bytes da imagem com filename null")
+        void shouldReturnImageBytesWithNullFilename() throws Exception {
+            var model = new ProductModel(null, new byte[]{10,11,12});
+
+            when(productService.getImage(productId)).thenReturn(model);
+
+            mockMvc.perform(get("/v1/products/{id}/image", productId))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType("application/octet-stream"))
+                    .andExpect(content().bytes(new byte[]{10,11,12}));
+
+            verify(productService, times(1)).getImage(productId);
+        }
     }
 
     @Nested
@@ -287,4 +360,3 @@ class ProductControllerTest {
         }
     }
 }
-

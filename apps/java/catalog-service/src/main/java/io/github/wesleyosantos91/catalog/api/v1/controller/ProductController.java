@@ -79,7 +79,9 @@ public record ProductController(ProductServicePort service) {
     public ResponseEntity<ProductResponse> update(@PathVariable UUID id,
                                                   @Validated(Groups.Update.class)
                                                   @ModelAttribute ProductRequest request,
-                                                  @RequestParam("image") MultipartFile imageFile) throws ResourceNotFoundException {
+                                                  @RequestParam(value = "image", required = false) MultipartFile imageFile)
+            throws ResourceNotFoundException {
+
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         LOGGER.debug("Function started 'update product'");

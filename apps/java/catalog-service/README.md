@@ -142,6 +142,10 @@ mvn spring-boot:run
 
 Acesse: [http://localhost:8090](http://localhost:8090)
 
+### 🧪 Testar a API
+
+Para testar os endpoints da API, importe a coleção do Insomnia localizada em [collections/catalog-service-collections.yaml](./collections/catalog-service-collections.yaml).
+
 ### 🏗️ Build & Testes
 
 ```bash
@@ -236,4 +240,3 @@ mvn clean install -U
 ---
 
 *Este README faz parte do projeto [wos-eats-lab](../../README.md)*
-

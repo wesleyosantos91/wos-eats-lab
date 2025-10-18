@@ -20,6 +20,7 @@ import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundExcept
 import io.github.wesleyosantos91.catalog.domain.model.ProductModel;
 import io.github.wesleyosantos91.catalog.domain.repository.ProductRepository;
 import io.github.wesleyosantos91.catalog.domain.repository.RestaurantRepository;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -159,6 +160,47 @@ class ProductServiceTest {
             BusinessException ex = assertThrows(BusinessException.class, () -> productService.create(productModel, null));
 
             assertNotNull(ex);
+        }
+
+        @Test
+        @DisplayName("Deve lançar ResourceAlreadyExistsException quando DataIntegrityViolationException")
+        void deveLancarResourceAlreadyExistsQuandoDataIntegrityViolation() {
+            when(restaurantRepository.existsById(restaurantId)).thenReturn(true);
+            when(repository.existsByNameAndRestaurantId("Produto Teste", restaurantId)).thenReturn(false);
+            when(repository.save(any(ProductEntity.class))).thenThrow(new DataIntegrityViolationException("Unique constraint"));
+
+            ResourceAlreadyExistsException ex = assertThrows(ResourceAlreadyExistsException.class, () -> productService.create(productModel, null));
+
+            assertNotNull(ex);
+        }
+
+        @Test
+        @DisplayName("Deve lançar BusinessException quando IOException no upload")
+        void deveLancarBusinessQuandoIOExceptionUpload() throws Exception {
+            when(restaurantRepository.existsById(restaurantId)).thenReturn(true);
+            when(repository.existsByNameAndRestaurantId("Produto Teste", restaurantId)).thenReturn(false);
+            when(repository.save(any(ProductEntity.class))).thenReturn(productEntity);
+            MockMultipartFile file = new MockMultipartFile("image", "file.png", "image/png", "bytes".getBytes());
+            when(storagePort.uploadFile(any(MultipartFile.class))).thenThrow(new IOException("Upload failed"));
+
+            BusinessException ex = assertThrows(BusinessException.class, () -> productService.create(productModel, file));
+
+            assertNotNull(ex);
+        }
+
+        @Test
+        @DisplayName("Deve criar produto com imagem vazia")
+        void deveCriarComImagemVazia() throws Exception {
+            when(restaurantRepository.existsById(restaurantId)).thenReturn(true);
+            when(repository.existsByNameAndRestaurantId("Produto Teste", restaurantId)).thenReturn(false);
+            when(repository.save(any(ProductEntity.class))).thenReturn(productEntity);
+
+            MockMultipartFile emptyFile = new MockMultipartFile("image", "empty.png", "image/png", new byte[0]);
+
+            ProductModel result = productService.create(productModel, emptyFile);
+
+            assertNotNull(result);
+            verify(storagePort, never()).uploadFile(any(MultipartFile.class));
         }
     }
 
@@ -340,6 +382,119 @@ class ProductServiceTest {
 
             assertNotNull(ex);
         }
+
+        @Test
+        @DisplayName("Deve lançar ResourceAlreadyExistsException quando DataIntegrityViolationException no update")
+        void deveLancarResourceAlreadyExistsQuandoDataIntegrityViolationUpdate() {
+            ProductEntity current = new ProductEntity();
+            current.setId(productId);
+            current.setRestaurant(restaurantEntity);
+
+            when(repository.findByIdWithRestaurant(productId)).thenReturn(Optional.of(current));
+            when(repository.save(any(ProductEntity.class))).thenThrow(new DataIntegrityViolationException("Unique constraint"));
+
+            ResourceAlreadyExistsException ex = assertThrows(ResourceAlreadyExistsException.class, () -> productService.update(productId, productModel, null));
+
+            assertNotNull(ex);
+        }
+
+        @Test
+        @DisplayName("Deve lançar BusinessException quando IOException no upload durante update")
+        void deveLancarBusinessQuandoIOExceptionUploadUpdate() throws Exception {
+            ProductEntity current = new ProductEntity();
+            current.setId(productId);
+            current.setRestaurant(restaurantEntity);
+
+            when(repository.findByIdWithRestaurant(productId)).thenReturn(Optional.of(current));
+            MockMultipartFile file = new MockMultipartFile("image", "file.png", "image/png", "bytes".getBytes());
+            when(storagePort.uploadFile(any(MultipartFile.class))).thenThrow(new IOException("Upload failed"));
+
+            BusinessException ex = assertThrows(BusinessException.class, () -> productService.update(productId, productModel, file));
+
+            assertNotNull(ex);
+        }
+
+        @Test
+        @DisplayName("Deve atualizar produto sem imagem")
+        void deveAtualizarSemImagem() throws Exception {
+            ProductEntity current = new ProductEntity();
+            current.setId(productId);
+            current.setRestaurant(restaurantEntity);
+            current.setName("Produto Teste");
+            current.setImageKey("old-key");
+
+            when(repository.findByIdWithRestaurant(productId)).thenReturn(Optional.of(current));
+            when(repository.save(any(ProductEntity.class))).thenReturn(current);
+
+            ProductModel result = productService.update(productId, productModel, null);
+
+            assertNotNull(result);
+            assertEquals("old-key", result.imageKey());
+            verify(storagePort, never()).uploadFile(any(MultipartFile.class));
+            verify(storagePort, never()).deleteFile(anyString());
+        }
+
+        @Test
+        @DisplayName("Deve atualizar produto com nome diferente e nao existe")
+        void deveAtualizarComNomeDiferenteENaoExiste() {
+            ProductEntity current = new ProductEntity();
+            current.setId(productId);
+            current.setRestaurant(restaurantEntity);
+            current.setName("Produto Teste");
+
+            when(repository.findByIdWithRestaurant(productId)).thenReturn(Optional.of(current));
+            when(repository.existsByNameAndRestaurantId("Novo Nome", restaurantId)).thenReturn(false);
+            when(repository.save(any(ProductEntity.class))).thenReturn(current);
+
+            ProductModel model = new ProductModel(restaurantId, "Novo Nome", "Desc", new BigDecimal("20.00"), true, null);
+
+            ProductModel result = productService.update(productId, model, null);
+
+            assertNotNull(result);
+            verify(repository, times(1)).existsByNameAndRestaurantId("Novo Nome", restaurantId);
+        }
+
+        @Test
+        @DisplayName("Deve atualizar produto com imagem quando nao tinha imagem")
+        void deveAtualizarComImagemQuandoNaoTinha() throws Exception {
+            ProductEntity current = new ProductEntity();
+            current.setId(productId);
+            current.setRestaurant(restaurantEntity);
+            current.setName("Produto Teste");
+            current.setImageKey(null); // no old image
+
+            when(repository.findByIdWithRestaurant(productId)).thenReturn(Optional.of(current));
+            when(repository.save(any(ProductEntity.class))).thenReturn(current);
+
+            MockMultipartFile file = new MockMultipartFile("image", "file.png", "image/png", "newbytes".getBytes());
+
+            ProductModel result = productService.update(productId, productModel, file);
+
+            assertNotNull(result);
+            verify(storagePort, times(1)).uploadFile(any(MultipartFile.class));
+            verify(storagePort, never()).deleteFile(anyString()); // since old was null
+        }
+
+        @Test
+        @DisplayName("Deve lançar ResourceAlreadyExistsException quando restaurante mudou e nome já existe no novo restaurante")
+        void deveLancarQuandoRestauranteMudouENomeJaExiste() {
+            UUID newRest = UUID.randomUUID();
+            ProductModel modelWithNewRest = new ProductModel(newRest, "Produto Teste", "Desc", new BigDecimal("20.00"), true, null);
+
+            ProductEntity current = new ProductEntity();
+            current.setId(productId);
+            current.setRestaurant(restaurantEntity);
+            current.setName("Produto Teste");
+
+            when(repository.findByIdWithRestaurant(productId)).thenReturn(Optional.of(current));
+            when(restaurantRepository.existsById(newRest)).thenReturn(true);
+            when(repository.existsByNameAndRestaurantId("Produto Teste", newRest)).thenReturn(true);
+
+            ResourceAlreadyExistsException ex = assertThrows(ResourceAlreadyExistsException.class, () -> productService.update(productId, modelWithNewRest, null));
+
+            assertNotNull(ex);
+            verify(repository, never()).save(any(ProductEntity.class));
+        }
     }
 
     @Nested
@@ -392,6 +547,20 @@ class ProductServiceTest {
 
             assertNotNull(ex);
         }
+
+        @Test
+        @DisplayName("Deve lançar ResourceNotFoundException quando EmptyResultDataAccessException")
+        void deveLancarQuandoEmptyResult() {
+            when(repository.findById(productId)).thenReturn(Optional.of(productEntity));
+            productEntity.setImageKey("img-key");
+            org.mockito.Mockito.doThrow(new org.springframework.dao.EmptyResultDataAccessException(1))
+                    .when(repository).delete(productEntity);
+
+            ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> productService.delete(productId));
+
+            assertNotNull(ex);
+            verify(storagePort, never()).deleteFile(anyString());
+        }
     }
 
     @Nested
@@ -422,6 +591,16 @@ class ProductServiceTest {
             assertNotNull(ex);
             verify(storagePort, never()).deleteFile(anyString());
         }
+
+        @Test
+        @DisplayName("Deve lançar ResourceNotFoundException quando produto nao existe")
+        void deveLancarQuandoProdutoNaoExiste() {
+            when(repository.findById(productId)).thenReturn(Optional.empty());
+
+            ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> productService.deleteImage(productId));
+
+            assertNotNull(ex);
+        }
     }
 
     @Nested
@@ -448,6 +627,16 @@ class ProductServiceTest {
         void deveLancarQuandoImagemNaoExiste() {
             productEntity.setImageKey(null);
             when(repository.findById(productId)).thenReturn(Optional.of(productEntity));
+
+            ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> productService.getImage(productId));
+
+            assertNotNull(ex);
+        }
+
+        @Test
+        @DisplayName("Deve lançar ResourceNotFoundException quando produto nao existe")
+        void deveLancarQuandoProdutoNaoExiste() {
+            when(repository.findById(productId)).thenReturn(Optional.empty());
 
             ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> productService.getImage(productId));
 

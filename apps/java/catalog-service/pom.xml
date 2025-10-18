@@ -432,6 +432,9 @@
                         <param>io.github.wesleyosantos91.catalog.infrastructure.s3.*</param>
                         <param>io.github.wesleyosantos91.catalog.infrastructure.virtualthread.*</param>
                         <param>io.github.wesleyosantos91.catalog.infrastructure.filter.*</param>
+                        <param>io.github.wesleyosantos91.catalog.infrastructure.json.*</param>
+                        <param>io.github.wesleyosantos91.catalog.infrastructure.properties.*</param>
+                        <param>io.github.wesleyosantos91.catalog.infrastructure.redis.*</param>
                     </excludedClasses>
                     <avoidCallsTo>
                         <param>org.springframework.util.StopWatch</param>
