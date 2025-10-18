@@ -4,7 +4,7 @@ import io.awspring.cloud.s3.S3Template;
 import io.github.wesleyosantos91.catalog.core.annotation.Adapter;
 import io.github.wesleyosantos91.catalog.core.port.out.storage.StoragePort;
 import io.github.wesleyosantos91.catalog.domain.exception.InfrastructureException;
-import io.github.wesleyosantos91.catalog.infrastructure.s3.config.S3PropertiesConfig;
+import io.github.wesleyosantos91.catalog.infrastructure.properties.config.AppProperties;
 import java.io.IOException;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 
 @Adapter(type = Adapter.AdapterType.OUTBOUND, description = "S3 Storage Adapter")
-public record S3StorageAdapter(S3Template s3Template, S3Client s3Client, S3PropertiesConfig props) implements StoragePort {
+public record S3StorageAdapter(S3Template s3Template, S3Client s3Client, AppProperties props) implements StoragePort {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3StorageAdapter.class);
 
@@ -23,7 +23,7 @@ public record S3StorageAdapter(S3Template s3Template, S3Client s3Client, S3Prope
         LOGGER.info("Uploading file to S3: {}", file.getOriginalFilename());
         validateFile(file);
         final String fileKey = generateFileKey(file.getOriginalFilename());
-        s3Template.upload(props.getBucketName(), fileKey, file.getInputStream());
+        s3Template.upload(props.getS3BucketName(), fileKey, file.getInputStream());
         LOGGER.info("File uploaded to S3: {}", fileKey);
         return fileKey;
     }
@@ -31,8 +31,8 @@ public record S3StorageAdapter(S3Template s3Template, S3Client s3Client, S3Prope
     @Override
     public byte[] downloadFile(String fileKey) {
         try {
-            LOGGER.debug("Downloading file from S3. Key: {}, Bucket: {}", fileKey, props.getBucketName());
-            final byte[] content = s3Template.download(props.getBucketName(), fileKey).getContentAsByteArray();
+            LOGGER.debug("Downloading file from S3. Key: {}, Bucket: {}", fileKey, props.getS3BucketName());
+            final byte[] content = s3Template.download(props.getS3BucketName(), fileKey).getContentAsByteArray();
             LOGGER.debug("File downloaded successfully. Key: {}, Size: {} bytes", fileKey, content.length);
             return content;
         } catch (IOException e) {
@@ -43,7 +43,7 @@ public record S3StorageAdapter(S3Template s3Template, S3Client s3Client, S3Prope
     @Override
     public void deleteFile(String fileKey) {
         s3Client.deleteObject(DeleteObjectRequest.builder()
-                .bucket(props.getBucketName())
+                .bucket(props.getS3BucketName())
                 .key(fileKey)
                 .build());
         LOGGER.info("File deleted successfully from S3. Key: {}", fileKey);

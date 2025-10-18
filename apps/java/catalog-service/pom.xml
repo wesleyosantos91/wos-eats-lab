@@ -208,7 +208,6 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>localstack</artifactId>
-            <version>1.20.4</version>
             <scope>test</scope>
         </dependency>
 

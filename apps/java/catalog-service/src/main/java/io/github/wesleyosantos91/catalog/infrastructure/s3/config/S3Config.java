@@ -1,6 +1,7 @@
 package io.github.wesleyosantos91.catalog.infrastructure.s3.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.Jackson2JsonS3ObjectConverter;
 import io.awspring.cloud.s3.PropertiesS3ObjectContentTypeResolver;
@@ -8,11 +9,9 @@ import io.awspring.cloud.s3.S3ObjectContentTypeResolver;
 import io.awspring.cloud.s3.S3ObjectConverter;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3Template;
-import java.net.URI;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -20,9 +19,9 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 @Configuration
 public class S3Config {
 
-    private final S3PropertiesConfig props;
+    private final S3Properties props;
 
-    public S3Config(S3PropertiesConfig props) {
+    public S3Config(S3Properties props) {
         this.props = props;
     }
 
@@ -30,10 +29,9 @@ public class S3Config {
     public S3Client s3Client() {
         return S3Client
                 .builder()
-                .endpointOverride(URI.create(props.getEndpointUrl()))
+                .endpointOverride(props.getEndpoint())
                 .region(Region.of(props.getRegion()))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(props.getAccessKey(), props.getSecretKey())))
+                .credentialsProvider(DefaultCredentialsProvider.builder().build())
                 .forcePathStyle(true)
                 .build();
     }
@@ -42,10 +40,9 @@ public class S3Config {
     public S3Presigner s3Presigner() {
         return S3Presigner
                 .builder()
-                .endpointOverride(URI.create(props.getEndpointUrl()))
+                .endpointOverride(props.getEndpoint())
                 .region(Region.of(props.getRegion()))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(props.getAccessKey(), props.getSecretKey())))
+                .credentialsProvider(DefaultCredentialsProvider.builder().build())
                 .build();
     }
 

@@ -70,7 +70,7 @@ public class ProductService implements ProductServicePort {
             final ProductEntity productEntity = ProductMapper.MAPPER.toEntity(model);
             final ProductEntity savedEntity = repository.save(productEntity);
 
-            final String imageKey = processImageUpload(imageFile);;
+            final String imageKey = processImageUpload(imageFile);
 
             savedEntity.setImageKey(imageKey);
 

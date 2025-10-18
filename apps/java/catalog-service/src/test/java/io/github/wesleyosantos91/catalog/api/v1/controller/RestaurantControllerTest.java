@@ -16,17 +16,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantRequest;
+import io.github.wesleyosantos91.catalog.core.mapper.RestaurantMapper;
 import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
 import io.github.wesleyosantos91.catalog.domain.entity.RestaurantEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
 import io.github.wesleyosantos91.catalog.domain.model.RestaurantModel;
-import io.github.wesleyosantos91.catalog.core.mapper.RestaurantMapper;
 import io.github.wesleyosantos91.catalog.domain.service.RestaurantService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
