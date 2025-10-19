@@ -105,7 +105,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(201)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/restaurant-create-response-schema.json"))
+                    .body(matchesJsonSchemaInClasspath("schemas/restaurant/response.json"))
                     .body("id", notNullValue())
                     .body("name", equalTo("Restaurante Italiano"))
                     .body("kitchen.id", equalTo(kitchenId))
@@ -242,7 +242,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(200)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/restaurant-response-schema.json"))
+                    .body(matchesJsonSchemaInClasspath("schemas/restaurant/response.json"))
                     .body("id", equalTo(restaurantId))
                     .body("name", equalTo("China in Box"))
                     .body("kitchen.id", equalTo(kitchenId))
@@ -323,7 +323,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(200)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/restaurant-page-response-schema.json"))
+                    .body(matchesJsonSchemaInClasspath("schemas/restaurant/page-response.json"))
                     .body("content", hasSize(greaterThanOrEqualTo(3)))
                     .body("page.number", equalTo(0))
                     .body("page.size", equalTo(10))
@@ -364,7 +364,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(200)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/restaurant-page-response-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/restaurant/page-response.json"));
         }
 
         @Test
@@ -384,7 +384,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(200)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/restaurant-page-response-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/restaurant/page-response.json"));
         }
 
         @Test
@@ -406,7 +406,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(200)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/restaurant-page-response-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/restaurant/page-response.json"));
         }
     }
 
@@ -436,7 +436,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(200)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/restaurant-response-schema.json"))
+                    .body(matchesJsonSchemaInClasspath("schemas/restaurant/response.json"))
                     .body("id", equalTo(restaurantId))
                     .body("name", equalTo("Thai Food Premium"))
                     .body("active", equalTo(false))
@@ -490,7 +490,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(404)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/problem-details-error-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/commons/problem-details.json"));
         }
 
         @Test
@@ -515,7 +515,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(400)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/problem-details-error-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/commons/problem-details-badrequest.json"));
         }
     }
 
@@ -578,7 +578,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(404)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/problem-details-error-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/commons/problem-details.json"));
         }
 
         @Test
@@ -591,7 +591,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(400)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/problem-details-error-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/commons/problem-details.json"));
         }
     }
 

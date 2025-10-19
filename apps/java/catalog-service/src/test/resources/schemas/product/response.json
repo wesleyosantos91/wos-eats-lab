@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "restaurant": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "active"
+      ]
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "price": {
+      "type": "number"
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "image_key": {
+      "type": "string"
+    },
+    "image_path": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "restaurant",
+    "name",
+    "description",
+    "price",
+    "active",
+    "image_key",
+    "image_path"
+  ]
+}

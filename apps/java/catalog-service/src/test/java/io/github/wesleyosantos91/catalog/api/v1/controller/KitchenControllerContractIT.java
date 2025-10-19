@@ -80,7 +80,7 @@ class KitchenControllerContractIT {
             .then()
                 .statusCode(HttpStatus.CREATED.value())
                 .contentType(ContentType.JSON)
-                .body(matchesJsonSchemaInClasspath("schemas/kitchen-response-schema.json"))
+                .body(matchesJsonSchemaInClasspath("schemas/kitchen/response.json"))
                 .body("id", notNullValue())
                 .body("name", equalTo("Italiana"));
         }
@@ -152,7 +152,7 @@ class KitchenControllerContractIT {
             .then()
                 .statusCode(HttpStatus.OK.value())
                 .contentType(ContentType.JSON)
-                .body(matchesJsonSchemaInClasspath("schemas/kitchen-response-schema.json"))
+                .body(matchesJsonSchemaInClasspath("schemas/kitchen/response.json"))
                 .body("id", equalTo(kitchenId))
                 .body("name", equalTo("Japonesa"));
         }
@@ -202,7 +202,7 @@ class KitchenControllerContractIT {
             .then()
                 .statusCode(HttpStatus.OK.value())
                 .contentType(ContentType.JSON)
-                .body(matchesJsonSchemaInClasspath("schemas/kitchen-page-response-schema.json"))
+                .body(matchesJsonSchemaInClasspath("schemas/kitchen/page-response.json"))
                 .body("content.size()", equalTo(2))
                 .body("page.total_elements", equalTo(2))
                 .body("page.total_pages", equalTo(1));
@@ -223,7 +223,7 @@ class KitchenControllerContractIT {
             .then()
                 .statusCode(HttpStatus.OK.value())
                 .contentType(ContentType.JSON)
-                .body(matchesJsonSchemaInClasspath("schemas/kitchen-page-response-schema.json"))
+                .body(matchesJsonSchemaInClasspath("schemas/kitchen/page-response.json"))
                 .body("content.size()", equalTo(1))
                 .body("content[0].name", equalTo("Italiana"));
         }
@@ -247,7 +247,7 @@ class KitchenControllerContractIT {
             .then()
                 .statusCode(HttpStatus.OK.value())
                 .contentType(ContentType.JSON)
-                .body(matchesJsonSchemaInClasspath("schemas/kitchen-page-response-schema.json"))
+                .body(matchesJsonSchemaInClasspath("schemas/kitchen/page-response.json"))
                 .body("content.size()", equalTo(2))
                 .body("page.total_elements", equalTo(5))
                 .body("page.total_pages", equalTo(3))
@@ -265,7 +265,7 @@ class KitchenControllerContractIT {
             .then()
                 .statusCode(HttpStatus.OK.value())
                 .contentType(ContentType.JSON)
-                .body(matchesJsonSchemaInClasspath("schemas/kitchen-page-response-schema.json"))
+                .body(matchesJsonSchemaInClasspath("schemas/kitchen/page-response.json"))
                 .body("content.size()", equalTo(0))
                 .body("page.total_elements", equalTo(0))
                 .body("page.total_pages", equalTo(0));
@@ -298,7 +298,7 @@ class KitchenControllerContractIT {
             .then()
                 .statusCode(HttpStatus.OK.value())
                 .contentType(ContentType.JSON)
-                .body(matchesJsonSchemaInClasspath("schemas/kitchen-response-schema.json"))
+                .body(matchesJsonSchemaInClasspath("schemas/kitchen/response.json"))
                 .body("id", equalTo(kitchenId))
                 .body("name", equalTo("Italiana Moderna"));
         }
@@ -421,7 +421,7 @@ class KitchenControllerContractIT {
             .then()
                 .statusCode(HttpStatus.CREATED.value())
                 .contentType(ContentType.JSON)
-                .body(matchesJsonSchemaInClasspath("schemas/kitchen-response-schema.json"));
+                .body(matchesJsonSchemaInClasspath("schemas/kitchen/response.json"));
         }
 
         @Test

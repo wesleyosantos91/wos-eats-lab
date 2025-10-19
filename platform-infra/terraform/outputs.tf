@@ -1,5 +1,5 @@
 output "bucket_name" {
-  value = aws_s3_bucket.bronze.bucket
+  value = aws_s3_bucket.wos-eats-catalog.bucket
 }
 
 output "queue_url" {

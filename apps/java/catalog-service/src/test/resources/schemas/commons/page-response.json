@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "array",
+      "items": {}
+    },
+    "page": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "number"
+        },
+        "number": {
+          "type": "number"
+        },
+        "total_elements": {
+          "type": "number"
+        },
+        "total_pages": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "size",
+        "number",
+        "total_elements",
+        "total_pages"
+      ]
+    }
+  },
+  "required": [
+    "content",
+    "page"
+  ]
+}

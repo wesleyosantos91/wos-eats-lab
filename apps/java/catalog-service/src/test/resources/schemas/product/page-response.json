@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "restaurant": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "kitchen": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ]
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "delivery_fee": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "kitchen",
+              "active",
+              "delivery_fee"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "image_key": {
+            "type": "string"
+          },
+          "image_path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "restaurant",
+          "name",
+          "description",
+          "price",
+          "active",
+          "image_key",
+          "image_path"
+        ]
+      }
+    },
+    "page": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "number"
+        },
+        "number": {
+          "type": "number"
+        },
+        "total_elements": {
+          "type": "number"
+        },
+        "total_pages": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "size",
+        "number",
+        "total_elements",
+        "total_pages"
+      ]
+    }
+  },
+  "required": [
+    "content",
+    "page"
+  ]
+}

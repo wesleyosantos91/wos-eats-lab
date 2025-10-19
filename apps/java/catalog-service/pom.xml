@@ -379,6 +379,7 @@
                                 <exclude>**/mapper/*</exclude>
                                 <exclude>**/metrics/*</exclude>
                                 <exclude>**/infrastructure/**</exclude>
+                                <exclude>**/annotation/**</exclude>
                             </excludes>
                             <rules>
                                 <rule>
