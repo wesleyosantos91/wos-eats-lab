@@ -2,7 +2,7 @@ package io.github.wesleyosantos91.catalog.infrastructure.s3.adapter;
 
 import io.awspring.cloud.s3.S3Template;
 import io.github.wesleyosantos91.catalog.core.annotation.Adapter;
-import io.github.wesleyosantos91.catalog.core.port.out.StoragePort;
+import io.github.wesleyosantos91.catalog.core.port.out.storage.StoragePort;
 import io.github.wesleyosantos91.catalog.domain.exception.InfrastructureException;
 import io.github.wesleyosantos91.catalog.infrastructure.properties.config.AppProperties;
 import java.io.IOException;

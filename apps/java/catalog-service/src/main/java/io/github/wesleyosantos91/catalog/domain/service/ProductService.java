@@ -3,7 +3,7 @@ package io.github.wesleyosantos91.catalog.domain.service;
 import io.github.wesleyosantos91.catalog.core.annotation.Adapter;
 import io.github.wesleyosantos91.catalog.core.mapper.ProductMapper;
 import io.github.wesleyosantos91.catalog.core.port.in.product.ProductServicePort;
-import io.github.wesleyosantos91.catalog.core.port.out.StoragePort;
+import io.github.wesleyosantos91.catalog.core.port.out.storage.StoragePort;
 import io.github.wesleyosantos91.catalog.domain.entity.ProductEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.BusinessException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
