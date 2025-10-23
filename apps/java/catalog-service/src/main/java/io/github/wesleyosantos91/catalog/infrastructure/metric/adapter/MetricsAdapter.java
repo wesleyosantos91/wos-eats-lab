@@ -1,7 +1,7 @@
 package io.github.wesleyosantos91.catalog.infrastructure.metric.adapter;
 
 import io.github.wesleyosantos91.catalog.core.annotation.Adapter;
-import io.github.wesleyosantos91.catalog.core.port.out.metric.MetricsPort;
+import io.github.wesleyosantos91.catalog.core.port.out.MetricsPort;
 import io.github.wesleyosantos91.catalog.domain.exception.MetricOperationException;
 import io.github.wesleyosantos91.catalog.infrastructure.metric.tag.counter.MultiTaggedCounter;
 import io.github.wesleyosantos91.catalog.infrastructure.metric.tag.timer.MultiTaggedTimer;
