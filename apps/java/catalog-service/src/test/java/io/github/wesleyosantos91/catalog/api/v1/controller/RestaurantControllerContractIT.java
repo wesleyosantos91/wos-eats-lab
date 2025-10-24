@@ -159,7 +159,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(400)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/problem-details-error-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/commons/problem-details-badrequest.json"));
         }
 
         @Test
@@ -182,7 +182,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(400)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/problem-details-error-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/commons/problem-details-badrequest.json"));
         }
 
         @Test
@@ -206,7 +206,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(400)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/problem-details-error-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/commons/problem-details-badrequest.json"));
         }
 
         @Test
@@ -220,7 +220,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(400)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/problem-details-error-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/commons/problem-details-json-malformed.json"));
         }
     }
 
@@ -282,7 +282,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(404)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/problem-details-error-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/commons/problem-details.json"));
         }
 
         @Test
@@ -295,7 +295,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(400)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/problem-details-error-schema.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/commons/problem-details-invalid-uuid.json"));
         }
     }
 
@@ -591,7 +591,7 @@ class RestaurantControllerContractIT {
                     .then()
                     .statusCode(400)
                     .contentType(ContentType.JSON)
-                    .body(matchesJsonSchemaInClasspath("schemas/commons/problem-details.json"));
+                    .body(matchesJsonSchemaInClasspath("schemas/commons/problem-details-invalid-uuid.json"));
         }
     }
 
