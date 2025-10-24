@@ -36,8 +36,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.mock;
-
 @WebMvcTest(ProductController.class)
 @DisplayName("ProductController - Unit Tests")
 class ProductControllerTest {
