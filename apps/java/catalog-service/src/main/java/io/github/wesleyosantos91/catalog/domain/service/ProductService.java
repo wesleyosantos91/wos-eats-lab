@@ -1,16 +1,19 @@
 package io.github.wesleyosantos91.catalog.domain.service;
 
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import io.github.wesleyosantos91.catalog.core.annotation.Adapter;
 import io.github.wesleyosantos91.catalog.core.mapper.ProductMapper;
-import io.github.wesleyosantos91.catalog.core.port.in.product.ProductServicePort;
-import io.github.wesleyosantos91.catalog.core.port.out.storage.StoragePort;
-import io.github.wesleyosantos91.catalog.domain.entity.ProductEntity;
+import io.github.wesleyosantos91.catalog.domain.port.in.product.ProductServicePort;
+import io.github.wesleyosantos91.catalog.domain.port.out.storage.StoragePort;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.ProductEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.BusinessException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
 import io.github.wesleyosantos91.catalog.domain.model.ProductModel;
-import io.github.wesleyosantos91.catalog.domain.repository.ProductRepository;
-import io.github.wesleyosantos91.catalog.domain.repository.RestaurantRepository;
+import io.github.wesleyosantos91.catalog.infrastructure.database.repository.ProductRepository;
+import io.github.wesleyosantos91.catalog.infrastructure.database.repository.RestaurantRepository;
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
 import java.io.IOException;
@@ -53,6 +56,9 @@ public class ProductService implements ProductServicePort {
     }
 
     @Transactional
+    @Retry(name = "productService")
+    @CircuitBreaker(name = "productService", fallbackMethod = "createProductFallback")
+    @Bulkhead(name = "productServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "createProductFallback")
     public ProductModel create(ProductModel model, MultipartFile imageFile) {
         LOGGER.info("Creating new product with name: {} for restaurant: {}", model.name(), model.restaurant().id());
 
@@ -89,6 +95,9 @@ public class ProductService implements ProductServicePort {
 
     @Cacheable(value = "products", key = "#id")
     @Transactional(readOnly = true)
+    @Retry(name = "productService")
+    @CircuitBreaker(name = "productService", fallbackMethod = "findProductByIdFallback")
+    @Bulkhead(name = "productServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "findProductByIdFallback")
     public ProductModel findById(UUID id) {
         LOGGER.debug("Searching for product with id: {}", id);
 
@@ -112,6 +121,9 @@ public class ProductService implements ProductServicePort {
     @Counted(value = "product.service.search", description = "Number of product search operations")
     @Timed(value = "product.service.search", description = "Time taken for product search operations")
     @Transactional(readOnly = true)
+    @Retry(name = "productService")
+    @CircuitBreaker(name = "productService", fallbackMethod = "searchProductFallback")
+    @Bulkhead(name = "productServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "searchProductFallback")
     public Page<ProductModel> search(ProductModel queryModel, Pageable pageable) {
         LOGGER.debug("Searching products with query: {} and pageable: {}", queryModel, pageable);
 
@@ -137,6 +149,9 @@ public class ProductService implements ProductServicePort {
 
     @CacheEvict(value = "products", key = "#id")
     @Transactional
+    @Retry(name = "productService")
+    @CircuitBreaker(name = "productService", fallbackMethod = "updateProductFallback")
+    @Bulkhead(name = "productServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "updateProductFallback")
     public ProductModel update(UUID id, ProductModel model, MultipartFile imageFile) {
         LOGGER.info("Updating product with id: {}", id);
 
@@ -180,6 +195,9 @@ public class ProductService implements ProductServicePort {
 
     @CacheEvict(value = "products", key = "#id")
     @Transactional
+    @Retry(name = "productService")
+    @CircuitBreaker(name = "productService", fallbackMethod = "deleteProductFallback")
+    @Bulkhead(name = "productServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "deleteProductFallback")
     public void delete(UUID id) {
         LOGGER.info("Deleting product with id: {}", id);
 
@@ -202,6 +220,9 @@ public class ProductService implements ProductServicePort {
 
     @CacheEvict(value = "products", key = "#id")
     @Transactional
+    @Retry(name = "productService")
+    @CircuitBreaker(name = "productService", fallbackMethod = "deleteProductImageFallback")
+    @Bulkhead(name = "productServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "deleteProductImageFallback")
     public ProductModel deleteImage(UUID id) {
         final var entity = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id.toString()));
 
@@ -217,6 +238,9 @@ public class ProductService implements ProductServicePort {
     }
 
     @Transactional(readOnly = true)
+    @Retry(name = "productService")
+    @CircuitBreaker(name = "productService", fallbackMethod = "getProductImageFallback")
+    @Bulkhead(name = "productServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "getProductImageFallback")
     public ProductModel getImage(UUID id) {
         final var entity = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id.toString()));
 
@@ -241,6 +265,54 @@ public class ProductService implements ProductServicePort {
         if (imageNewKey != null) {
             storagePort.deleteFile(imageOldKey);
         }
+    }
+
+    private ProductModel createProductFallback(ProductModel model, MultipartFile imageFile, Throwable throwable) {
+        return propagateProductFailure("create", throwable);
+    }
+
+    private ProductModel updateProductFallback(UUID id, ProductModel model, MultipartFile imageFile, Throwable throwable) {
+        return propagateProductFailure("update", throwable);
+    }
+
+    private ProductModel findProductByIdFallback(UUID id, Throwable throwable) {
+        return propagateProductFailure("findById", throwable);
+    }
+
+    private Page<ProductModel> searchProductFallback(ProductModel queryModel, Pageable pageable, Throwable throwable) {
+        return propagateProductFailure("search", throwable);
+    }
+
+    private void deleteProductFallback(UUID id, Throwable throwable) {
+        propagateProductVoidFailure("delete", throwable);
+    }
+
+    private ProductModel deleteProductImageFallback(UUID id, Throwable throwable) {
+        return propagateProductFailure("deleteImage", throwable);
+    }
+
+    private ProductModel getProductImageFallback(UUID id, Throwable throwable) {
+        return propagateProductFailure("getImage", throwable);
+    }
+
+    private <T> T propagateProductFailure(String operation, Throwable throwable) {
+        LOGGER.error("Product {} operation interrupted by resilience guard", operation, throwable);
+        if (throwable instanceof RuntimeException runtimeException) {
+            throw runtimeException;
+        }
+        throw new BusinessException("Unexpected resilience failure during product operation: " + operation,
+                throwable,
+                DATABASE_ERROR);
+    }
+
+    private void propagateProductVoidFailure(String operation, Throwable throwable) {
+        LOGGER.error("Product {} operation interrupted by resilience guard", operation, throwable);
+        if (throwable instanceof RuntimeException runtimeException) {
+            throw runtimeException;
+        }
+        throw new BusinessException("Unexpected resilience failure during product operation: " + operation,
+                throwable,
+                DATABASE_ERROR);
     }
 }
 

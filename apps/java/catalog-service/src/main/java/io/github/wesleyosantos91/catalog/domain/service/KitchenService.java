@@ -1,14 +1,17 @@
 package io.github.wesleyosantos91.catalog.domain.service;
 
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import io.github.wesleyosantos91.catalog.core.annotation.Adapter;
 import io.github.wesleyosantos91.catalog.core.mapper.KitchenMapper;
-import io.github.wesleyosantos91.catalog.core.port.in.kitchen.KitchenServicePort;
-import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
+import io.github.wesleyosantos91.catalog.domain.port.in.kitchen.KitchenServicePort;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.KitchenEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.BusinessException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
 import io.github.wesleyosantos91.catalog.domain.model.KitchenModel;
-import io.github.wesleyosantos91.catalog.domain.repository.KitchenRepository;
+import io.github.wesleyosantos91.catalog.infrastructure.database.repository.KitchenRepository;
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
 import java.util.Objects;
@@ -42,6 +45,9 @@ public class KitchenService implements KitchenServicePort {
 
     @CacheEvict(value = "kitchens", key = "#result.id")
     @Transactional
+    @Retry(name = "kitchenService")
+    @CircuitBreaker(name = "kitchenService", fallbackMethod = "createKitchenFallback")
+    @Bulkhead(name = "kitchenServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "createKitchenFallback")
     public KitchenModel create(KitchenModel model) {
         LOGGER.info("Creating new kitchen with name: {}", model.name());
 
@@ -65,6 +71,9 @@ public class KitchenService implements KitchenServicePort {
 
     @Cacheable(value = "kitchens", key = "#id")
     @Transactional(readOnly = true)
+    @Retry(name = "kitchenService")
+    @CircuitBreaker(name = "kitchenService", fallbackMethod = "findKitchenByIdFallback")
+    @Bulkhead(name = "kitchenServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "findKitchenByIdFallback")
     public KitchenModel findById(UUID id) {
         LOGGER.debug("Searching for kitchen with id: {}", id);
 
@@ -87,6 +96,9 @@ public class KitchenService implements KitchenServicePort {
     @Counted(value = "kitchen.service.search", description = "Number of kitchen search operations")
     @Timed(value = "kitchen.service.search", description = "Time taken for kitchen search operations")
     @Transactional(readOnly = true)
+    @Retry(name = "kitchenService")
+    @CircuitBreaker(name = "kitchenService", fallbackMethod = "searchKitchenFallback")
+    @Bulkhead(name = "kitchenServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "searchKitchenFallback")
     public Page<KitchenModel> search(KitchenModel queryModel, Pageable pageable) {
         LOGGER.debug("Searching kitchens with query: {} and pageable: {}", queryModel, pageable);
 
@@ -108,6 +120,9 @@ public class KitchenService implements KitchenServicePort {
 
     @CacheEvict(value = "kitchens", key = "#id")
     @Transactional
+    @Retry(name = "kitchenService")
+    @CircuitBreaker(name = "kitchenService", fallbackMethod = "updateKitchenFallback")
+    @Bulkhead(name = "kitchenServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "updateKitchenFallback")
     public KitchenModel update(UUID id, KitchenModel model) {
         LOGGER.info("Updating kitchen with id: {}", id);
 
@@ -136,6 +151,9 @@ public class KitchenService implements KitchenServicePort {
 
     @CacheEvict(value = "kitchens", key = "#id")
     @Transactional
+    @Retry(name = "kitchenService")
+    @CircuitBreaker(name = "kitchenService", fallbackMethod = "deleteKitchenFallback")
+    @Bulkhead(name = "kitchenServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "deleteKitchenFallback")
     public void delete(UUID id) {
         LOGGER.info("Deleting kitchen with id: {}", id);
 
@@ -154,5 +172,45 @@ public class KitchenService implements KitchenServicePort {
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while deleting kitchen. id=" + id, ex, DATABASE_ERROR);
         }
+    }
+
+    private KitchenModel createKitchenFallback(KitchenModel model, Throwable throwable) {
+        return propagateKitchenFailure("create", throwable);
+    }
+
+    private KitchenModel updateKitchenFallback(UUID id, KitchenModel model, Throwable throwable) {
+        return propagateKitchenFailure("update", throwable);
+    }
+
+    private KitchenModel findKitchenByIdFallback(UUID id, Throwable throwable) {
+        return propagateKitchenFailure("findById", throwable);
+    }
+
+    private Page<KitchenModel> searchKitchenFallback(KitchenModel queryModel, Pageable pageable, Throwable throwable) {
+        return propagateKitchenFailure("search", throwable);
+    }
+
+    private void deleteKitchenFallback(UUID id, Throwable throwable) {
+        propagateKitchenVoidFailure("delete", throwable);
+    }
+
+    private <T> T propagateKitchenFailure(String operation, Throwable throwable) {
+        LOGGER.error("Kitchen {} operation interrupted by resilience guard", operation, throwable);
+        if (throwable instanceof RuntimeException runtimeException) {
+            throw runtimeException;
+        }
+        throw new BusinessException("Unexpected resilience failure during kitchen operation: " + operation,
+                throwable,
+                DATABASE_ERROR);
+    }
+
+    private void propagateKitchenVoidFailure(String operation, Throwable throwable) {
+        LOGGER.error("Kitchen {} operation interrupted by resilience guard", operation, throwable);
+        if (throwable instanceof RuntimeException runtimeException) {
+            throw runtimeException;
+        }
+        throw new BusinessException("Unexpected resilience failure during kitchen operation: " + operation,
+                throwable,
+                DATABASE_ERROR);
     }
 }

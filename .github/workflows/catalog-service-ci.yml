@@ -1,0 +1,66 @@
+name: Catalog Service CI
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - develop
+    paths:
+      - '.github/workflows/catalog-service-ci.yml'
+      - 'apps/java/catalog-service/**'
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths:
+      - '.github/workflows/catalog-service-ci.yml'
+      - 'apps/java/catalog-service/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: catalog-service-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build, Test & Quality Gates
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: apps/java/catalog-service
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Temurin JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          cache-dependency-path: apps/java/catalog-service/pom.xml
+
+      - name: Make Maven Wrapper executable
+        run: chmod +x mvnw
+
+      - name: Maven Clean Verify (UT + IT + Contract + BDD + ArchUnit)
+        run: ./mvnw -B -ntp clean verify
+
+      - name: Maven Checkstyle
+        run: ./mvnw -B -ntp checkstyle:check
+
+      - name: Maven PIT Mutation Coverage
+        run: ./mvnw -B -ntp pitest:mutationCoverage
+
+      - name: Publish coverage and mutation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-service-quality-reports
+          path: |
+            apps/java/catalog-service/target/site/jacoco/**/*
+            apps/java/catalog-service/target/pit-reports/**/*
+          if-no-files-found: warn

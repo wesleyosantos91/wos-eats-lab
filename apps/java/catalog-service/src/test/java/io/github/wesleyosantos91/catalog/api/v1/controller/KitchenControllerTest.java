@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.wesleyosantos91.catalog.api.v1.request.KitchenRequest;
-import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.KitchenEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
 import io.github.wesleyosantos91.catalog.domain.model.KitchenModel;

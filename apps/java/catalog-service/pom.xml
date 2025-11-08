@@ -421,7 +421,7 @@
                     </excludedTestClasses>
                     <excludedClasses>
                         <param>io.github.github.*Application</param>
-                        <param>io.github.wesleyosantos91.catalog.domain.entity.*</param>
+                        <param>io.github.wesleyosantos91.catalog.infrastructure.database.entity.*</param>
                         <param>io.github.wesleyosantos91.catalog.domain.model.*</param>
                         <param>io.github.wesleyosantos91.catalog.domain.exception.*</param>
                         <param>io.github.wesleyosantos91.catalog.api.v1.request.*</param>

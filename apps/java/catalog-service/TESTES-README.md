@@ -467,7 +467,7 @@ src/test/java/architecture/
 ✅ Controllers terminam com "Controller"  
 ✅ Services terminam com "Service"  
 ✅ Repositories terminam com "Repository"  
-✅ Entities estão no pacote `domain.entity`  
+✅ Entities estão no pacote `infrastructure.database.entity`
 ✅ Request/Response estão nos pacotes corretos  
 
 #### 3. Anotações Spring

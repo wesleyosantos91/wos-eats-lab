@@ -4,7 +4,7 @@ import io.github.wesleyosantos91.catalog.api.v1.request.ProductQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.ProductRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.ProductResponse;
 import io.github.wesleyosantos91.catalog.core.mapper.ProductMapper;
-import io.github.wesleyosantos91.catalog.core.port.in.product.ProductServicePort;
+import io.github.wesleyosantos91.catalog.domain.port.in.product.ProductServicePort;
 import io.github.wesleyosantos91.catalog.core.validation.Groups;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
 import java.util.UUID;

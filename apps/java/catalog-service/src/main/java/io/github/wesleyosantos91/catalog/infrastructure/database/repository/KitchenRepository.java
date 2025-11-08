@@ -1,6 +1,6 @@
-package io.github.wesleyosantos91.catalog.domain.repository;
+package io.github.wesleyosantos91.catalog.infrastructure.database.repository;
 
-import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.KitchenEntity;
 import jakarta.validation.constraints.NotBlank;
 import java.util.UUID;
 import org.springframework.data.domain.Page;

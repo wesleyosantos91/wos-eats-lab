@@ -11,6 +11,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import io.github.wesleyosantos91.catalog.core.annotation.Adapter;
+import jakarta.persistence.Entity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.stereotype.Controller;
@@ -102,14 +103,36 @@ public class NamingConventionTest {
     }
 
     @Test
-    @DisplayName("Repositories devem estar no pacote 'domain.repository'")
+    @DisplayName("Ports devem estar no pacote 'domain.port'")
+    void ports_should_reside_in_domain_port_package() {
+        ArchRule rule = classes()
+            .that().haveSimpleNameEndingWith("Port")
+            .should().resideInAPackage("..domain.port..")
+            .as("Ports should reside in domain.port package");
+
+        rule.check(importedClasses);
+    }
+
+    @Test
+    @DisplayName("Repositories devem estar no pacote 'infrastructure.database.repository'")
     void repositories_should_be_in_repository_package() {
         ArchRule rule = classes()
             .that().areAnnotatedWith(Repository.class)
             .or().haveSimpleNameEndingWith("Repository")
-            .should().resideInAPackage("..domain.repository..")
-            .as("Repositories should reside in domain.repository package");
-            
+            .should().resideInAPackage("..infrastructure.database.repository..")
+            .as("Repositories should reside in infrastructure.database.repository package");
+
+        rule.check(importedClasses);
+    }
+
+    @Test
+    @DisplayName("Entidades de persistência devem estar no pacote 'infrastructure.database.entity'")
+    void entities_should_reside_in_infrastructure_entity_package() {
+        ArchRule rule = classes()
+            .that().areAnnotatedWith(Entity.class)
+            .should().resideInAPackage("..infrastructure.database.entity..")
+            .as("Persistence entities should reside in infrastructure.database.entity package");
+
         rule.check(importedClasses);
     }
 

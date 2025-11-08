@@ -1,8 +1,8 @@
 package io.github.wesleyosantos91.catalog.cucumber.hooks;
 
 import io.cucumber.java.Before;
-import io.github.wesleyosantos91.catalog.domain.repository.KitchenRepository;
-import io.github.wesleyosantos91.catalog.domain.repository.RestaurantRepository;
+import io.github.wesleyosantos91.catalog.infrastructure.database.repository.KitchenRepository;
+import io.github.wesleyosantos91.catalog.infrastructure.database.repository.RestaurantRepository;
 
 public class DatabaseCleanupHooks {
 
