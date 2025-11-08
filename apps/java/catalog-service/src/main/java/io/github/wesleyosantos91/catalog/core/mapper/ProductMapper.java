@@ -6,7 +6,7 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 import io.github.wesleyosantos91.catalog.api.v1.request.ProductQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.ProductRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.ProductResponse;
-import io.github.wesleyosantos91.catalog.domain.entity.ProductEntity;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.ProductEntity;
 import io.github.wesleyosantos91.catalog.domain.model.ProductModel;
 import java.util.ArrayList;
 import java.util.List;

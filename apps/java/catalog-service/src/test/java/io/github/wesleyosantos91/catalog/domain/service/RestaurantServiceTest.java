@@ -10,14 +10,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
-import io.github.wesleyosantos91.catalog.domain.entity.RestaurantEntity;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.KitchenEntity;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.RestaurantEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.BusinessException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
 import io.github.wesleyosantos91.catalog.domain.model.RestaurantModel;
-import io.github.wesleyosantos91.catalog.domain.repository.KitchenRepository;
-import io.github.wesleyosantos91.catalog.domain.repository.RestaurantRepository;
+import io.github.wesleyosantos91.catalog.infrastructure.database.repository.KitchenRepository;
+import io.github.wesleyosantos91.catalog.infrastructure.database.repository.RestaurantRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Optional;

@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import io.github.wesleyosantos91.catalog.TestcontainersConfiguration;
 import io.github.wesleyosantos91.catalog.api.v1.request.KitchenRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.KitchenResponse;
-import io.github.wesleyosantos91.catalog.domain.repository.KitchenRepository;
+import io.github.wesleyosantos91.catalog.infrastructure.database.repository.KitchenRepository;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

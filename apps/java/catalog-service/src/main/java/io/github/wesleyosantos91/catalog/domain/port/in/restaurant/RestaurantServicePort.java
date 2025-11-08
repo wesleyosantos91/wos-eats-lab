@@ -1,4 +1,4 @@
-package io.github.wesleyosantos91.catalog.core.port.in.restaurant;
+package io.github.wesleyosantos91.catalog.domain.port.in.restaurant;
 
 import io.github.wesleyosantos91.catalog.domain.model.RestaurantModel;
 import java.util.UUID;

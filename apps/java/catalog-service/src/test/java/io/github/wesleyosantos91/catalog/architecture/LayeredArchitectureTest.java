@@ -23,7 +23,7 @@ class LayeredArchitectureTest {
             .consideringOnlyDependenciesInLayers()
             
             .layer("API").definedBy("..api.v1.controller..", "..api.v1.request..", "..api.v1.response..", "..api.exception..")
-            .layer("Domain").definedBy("..domain.service..", "..domain.entity..", "..domain.model..", "..domain.repository..", "..domain.exception..")
+            .layer("Domain").definedBy("..domain.service..", "..domain.model..", "..domain.exception..", "..domain.port..")
             .layer("Infrastructure").definedBy("..infrastructure..")
             .layer("Core").definedBy("..core.mapper..")
 

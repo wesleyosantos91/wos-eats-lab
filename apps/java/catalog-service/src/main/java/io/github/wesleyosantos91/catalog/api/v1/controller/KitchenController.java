@@ -5,7 +5,7 @@ import static io.github.wesleyosantos91.catalog.core.mapper.KitchenMapper.MAPPER
 import io.github.wesleyosantos91.catalog.api.v1.request.KitchenQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.KitchenRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.KitchenResponse;
-import io.github.wesleyosantos91.catalog.core.port.in.kitchen.KitchenServicePort;
+import io.github.wesleyosantos91.catalog.domain.port.in.kitchen.KitchenServicePort;
 import io.github.wesleyosantos91.catalog.core.validation.Groups;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
 import java.util.UUID;

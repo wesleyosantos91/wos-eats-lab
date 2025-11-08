@@ -1,4 +1,4 @@
-package io.github.wesleyosantos91.catalog.core.port.out.storage;
+package io.github.wesleyosantos91.catalog.domain.port.out.storage;
 
 import java.io.IOException;
 import org.springframework.web.multipart.MultipartFile;

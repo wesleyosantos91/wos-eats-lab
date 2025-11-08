@@ -28,13 +28,13 @@ class DependencyTest {
     }
 
     @Test
-    @DisplayName("Entidades do domínio não devem depender diretamente da infraestrutura")
-    void domain_should_not_depend_on_infrastructure_outside_repository() {
+    @DisplayName("Entidades de banco não devem depender do domínio")
+    void persistence_entities_should_not_depend_on_domain() {
         ArchRule rule = noClasses()
-            .that().resideInAPackage("..domain.entity..")
-            .should().dependOnClassesThat().resideInAPackage("..infrastructure..")
-            .as("Domain entities should not directly depend on infrastructure");
-            
+            .that().resideInAPackage("..infrastructure.database.entity..")
+            .should().dependOnClassesThat().resideInAPackage("..domain..")
+            .as("Database entities should remain isolated from domain layer");
+
         rule.check(importedClasses);
     }
 

@@ -1,4 +1,4 @@
-package io.github.wesleyosantos91.catalog.core.port.in.kitchen;
+package io.github.wesleyosantos91.catalog.domain.port.in.kitchen;
 
 import io.github.wesleyosantos91.catalog.domain.model.KitchenModel;
 import java.util.UUID;

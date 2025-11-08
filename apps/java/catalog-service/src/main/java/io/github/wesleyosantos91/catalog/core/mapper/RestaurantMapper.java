@@ -6,7 +6,7 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.RestaurantRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.RestaurantResponse;
-import io.github.wesleyosantos91.catalog.domain.entity.RestaurantEntity;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.RestaurantEntity;
 import io.github.wesleyosantos91.catalog.domain.model.RestaurantModel;
 import java.util.ArrayList;
 import java.util.List;

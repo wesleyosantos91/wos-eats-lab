@@ -15,9 +15,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.github.wesleyosantos91.catalog.core.mapper.ProductMapper;
-import io.github.wesleyosantos91.catalog.core.port.in.product.ProductServicePort;
-import io.github.wesleyosantos91.catalog.domain.entity.ProductEntity;
-import io.github.wesleyosantos91.catalog.domain.entity.RestaurantEntity;
+import io.github.wesleyosantos91.catalog.domain.port.in.product.ProductServicePort;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.ProductEntity;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.RestaurantEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
 import io.github.wesleyosantos91.catalog.domain.model.ProductModel;
 import java.math.BigDecimal;

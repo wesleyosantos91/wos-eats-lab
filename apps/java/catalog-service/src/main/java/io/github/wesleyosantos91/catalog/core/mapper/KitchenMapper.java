@@ -6,7 +6,7 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 import io.github.wesleyosantos91.catalog.api.v1.request.KitchenQueryRequest;
 import io.github.wesleyosantos91.catalog.api.v1.request.KitchenRequest;
 import io.github.wesleyosantos91.catalog.api.v1.response.KitchenResponse;
-import io.github.wesleyosantos91.catalog.domain.entity.KitchenEntity;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.KitchenEntity;
 import io.github.wesleyosantos91.catalog.domain.model.KitchenModel;
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package io.github.wesleyosantos91.catalog.core.port.out.metric;
+package io.github.wesleyosantos91.catalog.domain.port.out.metric;
 
 import java.time.OffsetDateTime;
 

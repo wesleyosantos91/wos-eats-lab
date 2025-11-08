@@ -1,4 +1,4 @@
-package io.github.wesleyosantos91.catalog.core.port.in.product;
+package io.github.wesleyosantos91.catalog.domain.port.in.product;
 
 import io.github.wesleyosantos91.catalog.domain.model.ProductModel;
 import java.util.UUID;

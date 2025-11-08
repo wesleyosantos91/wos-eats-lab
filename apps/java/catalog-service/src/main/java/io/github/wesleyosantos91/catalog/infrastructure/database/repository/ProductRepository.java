@@ -1,6 +1,6 @@
-package io.github.wesleyosantos91.catalog.domain.repository;
+package io.github.wesleyosantos91.catalog.infrastructure.database.repository;
 
-import io.github.wesleyosantos91.catalog.domain.entity.ProductEntity;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.ProductEntity;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;

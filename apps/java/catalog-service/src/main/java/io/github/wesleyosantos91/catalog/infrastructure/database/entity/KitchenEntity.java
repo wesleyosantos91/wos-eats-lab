@@ -1,4 +1,4 @@
-package io.github.wesleyosantos91.catalog.domain.entity;
+package io.github.wesleyosantos91.catalog.infrastructure.database.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

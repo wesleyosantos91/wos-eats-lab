@@ -60,7 +60,7 @@ class SpringAnnotationTest {
     @DisplayName("Repositories devem ser anotados com @Repository")
     void repositories_should_be_annotated_with_repository() {
         ArchRule rule = classes()
-            .that().resideInAPackage("..domain.repository..")
+            .that().resideInAPackage("..infrastructure.database.repository..")
             .and().haveSimpleNameEndingWith("Repository")
             .should().beAnnotatedWith(Repository.class)
             .as("Repository classes should be annotated with @Repository");

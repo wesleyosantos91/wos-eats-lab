@@ -7,7 +7,7 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import io.github.wesleyosantos91.catalog.TestcontainersConfiguration;
 import io.github.wesleyosantos91.catalog.api.v1.request.KitchenRequest;
-import io.github.wesleyosantos91.catalog.domain.repository.KitchenRepository;
+import io.github.wesleyosantos91.catalog.infrastructure.database.repository.KitchenRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.util.UUID;

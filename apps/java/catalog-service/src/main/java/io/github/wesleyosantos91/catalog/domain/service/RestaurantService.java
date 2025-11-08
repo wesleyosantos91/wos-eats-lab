@@ -1,15 +1,18 @@
 package io.github.wesleyosantos91.catalog.domain.service;
 
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import io.github.wesleyosantos91.catalog.core.annotation.Adapter;
 import io.github.wesleyosantos91.catalog.core.mapper.RestaurantMapper;
-import io.github.wesleyosantos91.catalog.core.port.in.restaurant.RestaurantServicePort;
-import io.github.wesleyosantos91.catalog.domain.entity.RestaurantEntity;
+import io.github.wesleyosantos91.catalog.domain.port.in.restaurant.RestaurantServicePort;
+import io.github.wesleyosantos91.catalog.infrastructure.database.entity.RestaurantEntity;
 import io.github.wesleyosantos91.catalog.domain.exception.BusinessException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceAlreadyExistsException;
 import io.github.wesleyosantos91.catalog.domain.exception.ResourceNotFoundException;
 import io.github.wesleyosantos91.catalog.domain.model.RestaurantModel;
-import io.github.wesleyosantos91.catalog.domain.repository.KitchenRepository;
-import io.github.wesleyosantos91.catalog.domain.repository.RestaurantRepository;
+import io.github.wesleyosantos91.catalog.infrastructure.database.repository.KitchenRepository;
+import io.github.wesleyosantos91.catalog.infrastructure.database.repository.RestaurantRepository;
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
 import java.util.Objects;
@@ -46,6 +49,9 @@ public class RestaurantService implements RestaurantServicePort {
 
     @Transactional
     @CacheEvict(value = "restaurants", allEntries = true)
+    @Retry(name = "restaurantService")
+    @CircuitBreaker(name = "restaurantService", fallbackMethod = "createRestaurantFallback")
+    @Bulkhead(name = "restaurantServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "createRestaurantFallback")
     public RestaurantModel create(RestaurantModel model) {
         LOGGER.info("Creating new restaurant with name: {} for kitchen: {}", model.name(), model.kitchenId());
 
@@ -73,6 +79,9 @@ public class RestaurantService implements RestaurantServicePort {
 
     @Cacheable(value = "restaurants", key = "#id")
     @Transactional(readOnly = true)
+    @Retry(name = "restaurantService")
+    @CircuitBreaker(name = "restaurantService", fallbackMethod = "findRestaurantByIdFallback")
+    @Bulkhead(name = "restaurantServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "findRestaurantByIdFallback")
     public RestaurantModel findById(UUID id) {
         LOGGER.debug("Searching for restaurant with id: {}", id);
 
@@ -95,6 +104,9 @@ public class RestaurantService implements RestaurantServicePort {
     @Counted(value = "restaurant.service.search", description = "Number of restaurant search operations")
     @Timed(value = "restaurant.service.search", description = "Time taken for restaurant search operations")
     @Transactional(readOnly = true)
+    @Retry(name = "restaurantService")
+    @CircuitBreaker(name = "restaurantService", fallbackMethod = "searchRestaurantFallback")
+    @Bulkhead(name = "restaurantServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "searchRestaurantFallback")
     public Page<RestaurantModel> search(RestaurantModel queryModel, Pageable pageable) {
         LOGGER.debug("Searching restaurants with query: {} and pageable: {}", queryModel, pageable);
 
@@ -120,6 +132,9 @@ public class RestaurantService implements RestaurantServicePort {
 
     @Transactional
     @CacheEvict(value = "restaurants", key = "#id")
+    @Retry(name = "restaurantService")
+    @CircuitBreaker(name = "restaurantService", fallbackMethod = "updateRestaurantFallback")
+    @Bulkhead(name = "restaurantServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "updateRestaurantFallback")
     public RestaurantModel update(UUID id, RestaurantModel model) {
         LOGGER.info("Updating restaurant with id: {}", id);
 
@@ -152,6 +167,9 @@ public class RestaurantService implements RestaurantServicePort {
 
     @Transactional
     @CacheEvict(value = "restaurants", key = "#id")
+    @Retry(name = "restaurantService")
+    @CircuitBreaker(name = "restaurantService", fallbackMethod = "deleteRestaurantFallback")
+    @Bulkhead(name = "restaurantServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "deleteRestaurantFallback")
     public void delete(UUID id) {
         LOGGER.info("Deleting restaurant with id: {}", id);
 
@@ -170,5 +188,45 @@ public class RestaurantService implements RestaurantServicePort {
         } catch (DataAccessException ex) {
             throw new BusinessException("Database error while deleting restaurant. id=" + id, ex, DATABASE_ERROR);
         }
+    }
+
+    private RestaurantModel createRestaurantFallback(RestaurantModel model, Throwable throwable) {
+        return propagateRestaurantFailure("create", throwable);
+    }
+
+    private RestaurantModel updateRestaurantFallback(UUID id, RestaurantModel model, Throwable throwable) {
+        return propagateRestaurantFailure("update", throwable);
+    }
+
+    private RestaurantModel findRestaurantByIdFallback(UUID id, Throwable throwable) {
+        return propagateRestaurantFailure("findById", throwable);
+    }
+
+    private Page<RestaurantModel> searchRestaurantFallback(RestaurantModel queryModel, Pageable pageable, Throwable throwable) {
+        return propagateRestaurantFailure("search", throwable);
+    }
+
+    private void deleteRestaurantFallback(UUID id, Throwable throwable) {
+        propagateRestaurantVoidFailure("delete", throwable);
+    }
+
+    private <T> T propagateRestaurantFailure(String operation, Throwable throwable) {
+        LOGGER.error("Restaurant {} operation interrupted by resilience guard", operation, throwable);
+        if (throwable instanceof RuntimeException runtimeException) {
+            throw runtimeException;
+        }
+        throw new BusinessException("Unexpected resilience failure during restaurant operation: " + operation,
+                throwable,
+                DATABASE_ERROR);
+    }
+
+    private void propagateRestaurantVoidFailure(String operation, Throwable throwable) {
+        LOGGER.error("Restaurant {} operation interrupted by resilience guard", operation, throwable);
+        if (throwable instanceof RuntimeException runtimeException) {
+            throw runtimeException;
+        }
+        throw new BusinessException("Unexpected resilience failure during restaurant operation: " + operation,
+                throwable,
+                DATABASE_ERROR);
     }
 }
