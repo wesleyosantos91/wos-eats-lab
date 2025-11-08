@@ -3,12 +3,14 @@ name: Catalog Service CI
 on:
   push:
     branches:
-      - main
+      - 'feature/**'
+      - develop
     paths:
       - '.github/workflows/catalog-service-ci.yml'
       - 'apps/java/catalog-service/**'
   pull_request:
     branches:
+      - develop
       - main
     paths:
       - '.github/workflows/catalog-service-ci.yml'
